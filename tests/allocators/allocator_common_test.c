@@ -2,9 +2,6 @@
 
 #include <string.h>
 
-// TODO: delet dis
-#include "../../src/allocators/fixed_size_allocator.h"
-
 static void permute_index_array(test_prng_t *rng, const unsigned size,
                                 unsigned CUTL_ARRAY_ARG(array, const static size))
 {
@@ -82,24 +79,7 @@ void test_allocator(const cutl_allocator_t *const allocator, const unsigned allo
         const size_t new_size = test_prng_next_uint(&rng) % (max_alloc_size - min_alloc_size + 1) + min_alloc_size;
         info->ptr = cutl_realloc(allocator, info->ptr, new_size);
         TEST_ASSERTION(info->ptr, "Failed to reallocate memory.");
-        size_t real_size;
-        TEST_ASSERTION(cutl_allocator_fs_real_block_size((const cutl_allocator_fs_t *)allocator, info->ptr,
-                                                         &real_size) == CUTL_SUCCESS,
-                       "Could not get real size of the block.");
-        TEST_ASSERTION(real_size >= new_size, "Reallocated block was not the correct size (%zu vs %zu) !.", real_size,
-                       new_size);
         info->second_size = new_size;
-        // Check the reallocations
-        for (unsigned j = 0; j < allocations; ++j)
-        {
-            auto const j_info = allocations_info + j;
-            size_t real_size_2;
-            TEST_ASSERTION(cutl_allocator_fs_real_block_size((const cutl_allocator_fs_t *)allocator, j_info->ptr,
-                                                             &real_size_2) == CUTL_SUCCESS,
-                           "Could not get real size of the block.");
-            TEST_ASSERTION(real_size_2 >= j_info->second_size, "Reallocated block was not the correct size (%zu vs %zu) !.",
-                           real_size_2, j_info->second_size);
-        }
     }
 
     // Check all the necessary memory was moved

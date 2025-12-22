@@ -92,7 +92,7 @@ void *cutl_realloc(const cutl_allocator_t *allocator, void *ptr, const size_t ne
 
 void cutl_dealloc(const cutl_allocator_t *allocator, void *ptr)
 {
-    if (ptr == nullptr)
+    if (ptr != nullptr)
         allocator->deallocate(allocator->state, ptr);
 }
 

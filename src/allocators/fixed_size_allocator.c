@@ -1,6 +1,9 @@
 #include "fixed_size_allocator.h"
 #include "allocator_internal.h"
 
+// // TODO: only for profiling
+// #define static
+
 /** Extract the memory block array from the fixed-size allocator.
  *
  * @param this Allocator from which to get the array.
@@ -18,6 +21,7 @@ static const memory_block_info_t *fixed_size_allocator_get_block_array_const(con
 
 static int _fixed_size_allocator_validate(const cutl_allocator_fs_t *const this)
 {
+#ifdef CUTL_VALIDATE_ALLOCATORS
     auto const memory_blocks = fixed_size_allocator_get_block_array_const(this);
     for (size_t i_block = 0; i_block < this->block_count; ++i_block)
     {
@@ -99,7 +103,7 @@ static int _fixed_size_allocator_validate(const cutl_allocator_fs_t *const this)
         // Move to the next one
         current_block = next_block;
     }
-
+#endif // CUTL_VALIDATE_ALLOCATORS
     return 1;
 }
 
@@ -424,6 +428,8 @@ static unsigned find_memory_block_index_by_end(const unsigned block_cnt,
     return block_cnt;
 }
 
+// TODO: currently the slowest part of the allocator is `fixed_buffer_deallocate_block`, so that can be sped up
+
 /** Deallocate the memory block and return it to the allocator.
  *
  * @param this Allocator to deallocate the block from.
@@ -505,7 +511,7 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
 
     // Find the block memory belongs to.
     memory_block_info_t *const memory_blocks = fixed_size_allocator_get_block_array(this);
-    const unsigned i_block = find_memory_block_index_by_start(this->block_count, memory_blocks, memory_ptr);
+    unsigned i_block = find_memory_block_index_by_start(this->block_count, memory_blocks, memory_ptr);
     if (i_block == this->block_count)
     {
         // This is either an old pointer, or our block table is corrupted.
@@ -515,7 +521,7 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
     // Get the real size that will be needed
     auto const real_size = _get_block_size(size);
 
-    memory_block_info_t *const block = memory_blocks + i_block;
+    memory_block_info_t *block = memory_blocks + i_block;
     // Are we good?
     if (real_size == block->size)
     {
@@ -552,22 +558,14 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
 
     // The current block is too small. If the left or right blocks are large enough and free, we can steal memory from
     // those two.
-    size_t free_neighbors_size = 0;
-    // Right neighbor is easy to find.
     const unsigned i_right =
         find_memory_block_index_by_start(this->block_count, memory_blocks, memory_ptr + block->size);
-    const unsigned i_left = find_memory_block_index_by_end(this->block_count, memory_blocks, memory_ptr);
-    if (i_right != this->block_count && memory_blocks[i_right].state == MEMORY_BLOCK_FREE)
-    {
-        free_neighbors_size = memory_blocks[i_right].size;
-    }
-    if (i_left != this->block_count && memory_blocks[i_left].state == MEMORY_BLOCK_FREE)
-    {
-        free_neighbors_size += memory_blocks[i_left].size;
-    }
 
-    uintptr_t needed_extra_memory = real_size - block->size;
-    if (free_neighbors_size <= needed_extra_memory)
+    const uintptr_t needed_extra_memory = real_size - block->size;
+    if (i_right == this->block_count ||                      // Right block does not even exist
+        memory_blocks[i_right].state != MEMORY_BLOCK_FREE || // The right block is not free
+        memory_blocks[i_right].size <= needed_extra_memory   // The right block is too small
+    )
     {
         // We cannot steal from the neighbors
         // As the last option, try to allocate a totally new memory buffer
@@ -588,50 +586,21 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
         return CUTL_SUCCESS;
     }
 
-    // We can steal from the neighbors. First, start with the right one!
-    if (i_right != this->block_count && memory_blocks[i_right].state == MEMORY_BLOCK_FREE)
+    // We can steal from the right neighbor
+    memory_block_info_t *const right_block = memory_blocks + i_right;
+    // Right one has more than enough space!
+    block->size += needed_extra_memory;
+    right_block->offset += needed_extra_memory;
+    right_block->size -= needed_extra_memory;
+    if (right_block->size == 0)
     {
-        memory_block_info_t *const right_block = memory_blocks + i_right;
-        if (needed_extra_memory <= right_block->size)
-        {
-            // Right one has more than enough space!
-            block->size += needed_extra_memory;
-            right_block->offset += needed_extra_memory;
-            right_block->size -= needed_extra_memory;
-            if (right_block->size == 0)
-            {
-                // Get rid of the right block now that it is empty
-                right_block->state = MEMORY_BLOCK_USED;
-                auto const res = fixed_buffer_deallocate_block(this, memory_blocks, i_right);
-                (void)res;
-                CUTL_ASSERT(res == CUTL_SUCCESS, "Could not release the right memory block: (%s) - %s",
-                            cutl_result_to_string(res), cutl_result_message(res));
-            }
-            // Set up the guards
-            *p_memory = make_block_guarded(this, *block);
-            // Done
-            return CUTL_SUCCESS;
-        }
-        // We steal as much as we can from the right block
-        block->size += right_block->size;
-        right_block->offset += right_block->size;
-        needed_extra_memory -= right_block->size;
-        right_block->size = 0;
+        // Get rid of the right block now that it is empty
         right_block->state = MEMORY_BLOCK_USED;
         auto const res = fixed_buffer_deallocate_block(this, memory_blocks, i_right);
         (void)res;
         CUTL_ASSERT(res == CUTL_SUCCESS, "Could not release the right memory block: (%s) - %s",
                     cutl_result_to_string(res), cutl_result_message(res));
     }
-    // We steal the remainder from the left neighbor
-    CUTL_ASSERT(i_left != this->block_count, "Left neighbor should not be free at this point!");
-    memory_block_info_t *const left_block = memory_blocks + i_left;
-    left_block->size -= needed_extra_memory;
-    block->offset -= needed_extra_memory;
-    block->size += needed_extra_memory;
-    // Move the memory
-    memmove((void *)((uintptr_t)old_ptr - needed_extra_memory), old_ptr,
-            block->size - 2LLU * ALLOCATOR_GUARD_BYTE_COUNT);
     // Set up the guards
     *p_memory = make_block_guarded(this, *block);
     // Done

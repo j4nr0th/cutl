@@ -18,4 +18,5 @@ target_compile_definitions(cutl PUBLIC CUTL_ENABLE_ASSERTS)
 target_compile_options(cutl PRIVATE -Wall -Wextra)
 
 enable_testing()
+#target_compile_definitions(cutl PUBLIC CUTL_VALIDATE_ALLOCATORS)
 add_subdirectory(tests)
