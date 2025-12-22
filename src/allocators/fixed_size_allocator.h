@@ -10,12 +10,26 @@ typedef struct
     memory_block_state_t state;
 } memory_block_info_t;
 
-// Allocator of fixed size
+/* Allocator with a fixed memory pool
+ *
+ * It uses its memory pool to store block information and for backing made allocations.
+ * The memory block array grows from the low to high addresses (from start towards the end),
+ * so the allocations are first made from the high addresses to the low ones (from end to the start).
+ *
+ * If at some point there is not a free block large enough for a new allocation, the freed blocks are defragmented
+ * and merged with their free neighbors to make more memory available. If even then there is not a large enough
+ * memory block available, the allocation is considered failed.
+ *
+ * As an implementation detail, regarding the memory block information, the free blocks are always stored at the
+ * end of the array. They are unsorted, except the left-most block, which starts after the array of the info array,
+ * always being at the end of the array.
+ */
 typedef struct
 {
     cutl_allocator_t base;
-    size_t total_size;      // Total size of the block
-    size_t block_count;     // Total allocation count
+    size_t free_blocks;     // Number of free blocks. These are stored after the used blocks.
+    size_t block_count;     // Total allocation count.
+    size_t total_size;      // Total size of the allocator.
     unsigned char memory[]; // Memory which includes allocations, as well as the block array at the end
 } cutl_allocator_fs_t;
 
@@ -30,6 +44,13 @@ typedef struct
  */
 cutl_result_t cutl_allocator_fs_create(size_t size, unsigned char CUTL_ARRAY_ARG(memory, size),
                                        cutl_allocator_fs_t **p_allocator);
+
+/**
+ * Force the allocator to defragment the free chunks by merging adjacent free blocks together
+ *
+ * @param this Allocator to defragment.
+ */
+void cutl_allocator_fs_defragment(cutl_allocator_fs_t *this);
 
 /** Get the allocator interface from the fixed-size allocator.
  *

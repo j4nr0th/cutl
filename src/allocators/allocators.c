@@ -80,11 +80,15 @@ const cutl_allocator_t *cutl_allocator_get_default(void)
 
 void *cutl_alloc(const cutl_allocator_t *allocator, const size_t size)
 {
+    if (size == 0)
+        return nullptr;
     return allocator->allocate(allocator->state, size);
 }
 
 void *cutl_realloc(const cutl_allocator_t *allocator, void *ptr, const size_t new_size)
 {
+    if (new_size == 0)
+        return nullptr;
     if (ptr == nullptr)
         return cutl_alloc(allocator, new_size);
     return allocator->reallocate(allocator->state, ptr, new_size);
