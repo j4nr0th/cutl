@@ -2,7 +2,7 @@
 #include "allocator_internal.h"
 
 //  only for profiling
-#define static
+// #define static
 
 /** Get the array of used memory blocks.
  *
@@ -26,6 +26,7 @@ static memory_block_info_t *fixed_size_allocator_get_free_blocks(const cutl_allo
 
 static int _fixed_size_allocator_validate(const cutl_allocator_fs_t *const this)
 {
+    (void)this;
 #ifdef CUTL_VALIDATE_ALLOCATORS
     auto const memory_blocks = fixed_size_allocator_get_all_blocks(this);
     for (size_t i_block = 0; i_block < this->block_count; ++i_block)
@@ -289,31 +290,21 @@ cutl_result_t cutl_allocator_fs_allocate(cutl_allocator_fs_t *const this, const 
  */
 static unsigned memory_block_array_defragment(unsigned block_cnt, memory_block_info_t blocks[const static block_cnt])
 {
-    unsigned merged = 0;
-    // Remove zero-sized free blocks
-    for (unsigned i_other = 0; i_other < block_cnt; ++i_other)
-    {
-        if (blocks[i_other].size == 0)
-        {
-            merged += 1;
-        }
-        else if (merged != 0)
-        {
-            blocks[i_other - merged] = blocks[i_other];
-        }
-    }
 
-    // Update the new number of blocks
-    block_cnt -= merged;
-
-    // Merge adjacent free blocks
+    // Merge adjacent free blocks and free blocks of zero size
     // The goal is to sort the array based on descending offset and merge adjacent blocks in the process
-    unsigned eliminated = 0;
+    unsigned merged = 0;
     for (unsigned i_pos = 0; i_pos < block_cnt - 1; ++i_pos)
     {
         // Skip a merged block
         if (blocks[i_pos].state == MEMORY_BLOCK_MERGED)
             continue;
+
+        if (blocks[i_pos].size == 0)
+        {
+            blocks[i_pos].state = MEMORY_BLOCK_MERGED;
+            merged += 1;
+        }
 
         for (unsigned i_other = i_pos + 1; i_other < block_cnt; ++i_other)
         {
@@ -343,12 +334,12 @@ static unsigned memory_block_array_defragment(unsigned block_cnt, memory_block_i
             blocks[i_pos].size += blocks[i_other].size;
             blocks[i_pos].offset = blocks[i_other].offset;
             blocks[i_other].state = MEMORY_BLOCK_MERGED;
-            eliminated += 1;
+            merged += 1;
         }
     }
 
     // Remove the merged blocks from the array now
-    if (eliminated)
+    if (merged)
     {
         for (unsigned i_read = 0, i_write = 0; i_read < block_cnt; ++i_read)
         {
@@ -358,7 +349,7 @@ static unsigned memory_block_array_defragment(unsigned block_cnt, memory_block_i
                 i_write += 1;
             }
         }
-        block_cnt -= eliminated;
+        block_cnt -= merged;
 
         // Now we have a sorted array of free blocks, which means that we can go back to front and merge them again
         for (unsigned i = block_cnt; i > 0; --i)
@@ -372,11 +363,11 @@ static unsigned memory_block_array_defragment(unsigned block_cnt, memory_block_i
             }
             next_block->offset = this_block->offset;
             next_block->size += this_block->size;
-            eliminated += 1;
+            merged += 1;
         }
     }
 
-    return merged + eliminated;
+    return merged;
 }
 
 /** Convert the (absolute) memory address to the address relative to the allocator.

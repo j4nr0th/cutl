@@ -12,6 +12,10 @@ list(APPEND CUTL_SRC_FILES
 )
 add_library(cutl STATIC ${CUTL_SRC_FILES}
         tests/allocators/test_fixed_size_allocator.c
+        src/allocators/stack_allocator.c
+        src/allocators/stack_allocator.h
+        src/allocators/block_allocator.c
+        src/allocators/block_allocator.h
 )
 
 target_compile_definitions(cutl PUBLIC CUTL_ENABLE_ASSERTS)

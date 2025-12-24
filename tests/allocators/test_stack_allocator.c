@@ -1,4 +1,4 @@
-#include "../../src/allocators/fixed_size_allocator.h"
+#include "../../src/allocators/stack_allocator.h"
 #include "allocator_common_test.h"
 #include <time.h>
 
@@ -55,16 +55,15 @@ int main(const int argc, const char *CUTL_ARRAY_ARG(argv, const static argc))
     TEST_ASSERTION(end_ptr != argv[1], "Parameter was not a positive integer.");
     TEST_ASSERTION(cnt > 0, "Parameter was not a positive integer.");
 
-    auto const total_required_memory =
-        cnt * 2 * (ALLOCATION_MAX_SIZE + 8) + (cnt + 1) * sizeof(memory_block_info_t) + sizeof(cutl_allocator_fs_t);
+    auto const total_required_memory = cnt * 2 * (ALLOCATION_MAX_SIZE + 48) + sizeof(cutl_allocator_stack_t);
 
     unsigned char *const memory = malloc(total_required_memory);
     TEST_ASSERTION(memory != nullptr, "Failed to allocate memory.");
-    cutl_allocator_fs_t *allocator;
-    auto const res = cutl_allocator_fs_create(total_required_memory, memory, &allocator);
+    cutl_allocator_stack_t *allocator;
+    auto const res = cutl_allocator_stack_create(total_required_memory, memory, &allocator);
     TEST_ASSERTION(res == CUTL_SUCCESS, "Failed to create allocator: (%s) - %s.", cutl_result_to_string(res),
                    cutl_result_message(res));
-    auto const allocator_fs = cutl_allocator_fs_get(allocator);
+    auto const allocator_fs = cutl_allocator_stack_get(allocator);
 
     time_allocator(cnt, allocator_fs);
     time_allocator(cnt, cutl_allocator_get_default());

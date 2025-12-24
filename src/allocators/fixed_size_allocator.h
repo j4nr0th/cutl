@@ -27,10 +27,11 @@ typedef struct
 typedef struct
 {
     cutl_allocator_t base;
-    size_t free_blocks;     // Number of free blocks. These are stored after the used blocks.
-    size_t block_count;     // Total allocation count.
-    size_t total_size;      // Total size of the allocator.
-    unsigned char memory[]; // Memory which includes allocations, as well as the block array at the end
+    size_t free_blocks; // Number of free blocks. These are stored after the used blocks.
+    size_t block_count; // Total allocation count.
+    size_t total_size;  // Total size of the allocator.
+    alignas(
+        max_align_t) unsigned char memory[]; // Memory which includes allocations, as well as the block array at the end
 } cutl_allocator_fs_t;
 
 /** Create a fixed-size new allocator within the provided array.
