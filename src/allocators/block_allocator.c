@@ -2,6 +2,7 @@
 #include "block_allocator.h"
 
 #include "allocator_internal.h"
+
 // Counters for blocks must come in units of `ALLOCATOR_MINIMUM_ALIGNMENT` bytes.
 auto constexpr blocks_per_counter_unit = ALLOCATOR_MINIMUM_ALIGNMENT * 8LLU;
 
@@ -18,12 +19,25 @@ static bool block_get_state(const cutl_allocator_block_t *const this, const unsi
     return (bool)(this->memory[block_idx / 8] & (1 << (block_idx % 8)));
 }
 
-static void block_set_state(cutl_allocator_block_t *const this, const unsigned block_idx, const bool free)
+static void print_block_info(const cutl_allocator_block_t *const this)
+{
+    printf("Block allocator with %u blocks of size %u\n", this->block_count, this->block_size);
+    printf("Block counters:\n");
+    for (unsigned i = 0; i < this->block_count; ++i)
+    {
+        auto const block_state = block_get_state(this, i);
+        printf("%c", block_state ? 'X' : '.');
+        if ((i + 1) % 8 == 0)
+            printf("\n");
+    }
+}
+
+static void block_set_state(cutl_allocator_block_t *const this, const unsigned block_idx, const bool new_state)
 {
     CUTL_ASSERT(block_idx < this->block_count, "Block index %u is out of bounds.", block_idx);
     auto const mask = (unsigned char)(1 << (block_idx % 8));
     auto const ptr = this->memory + (block_idx / 8);
-    if (free)
+    if (!new_state)
     {
         CUTL_ASSERT(*ptr & mask, "Block %u is already free.", block_idx);
         *ptr &= ~mask; // Remove the block bit
@@ -48,12 +62,12 @@ cutl_result_t cutl_allocator_block_allocate(cutl_allocator_block_t *const this, 
         if (group_state == 255)
             continue;
 
-        // We can grab the lowest one
+        // We can grab the lowest free one
         block_idx = i * 8;
-        // Get the lowest bit in isolation
-        auto lowest_byte = group_state & ~(group_state - 1);
+        // Get the lowest free bit in isolation
+        auto lowest_byte = (~group_state & ~(~group_state - 1));
         // While the lowest bit is still there, we shift down
-        while (lowest_byte)
+        while (lowest_byte > 1)
         {
             block_idx += 1;
             lowest_byte >>= 1;
@@ -189,7 +203,7 @@ cutl_result_t cutl_allocator_block_create(const size_t size, unsigned char CUTL_
         return CUTL_RESULT_INSUFFICIENT_ALIGNMENT;
 
     // Adjust the block size to also hold the padding bytes
-    block_size += 2 * ALLOCATOR_GUARD_BYTE_COUNT;
+    block_size = _get_block_size(block_size);
 
     // Can we use at least one block and the array holding the block info?
     auto useful_size = size - sizeof(cutl_allocator_block_t);

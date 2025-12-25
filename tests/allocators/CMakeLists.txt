@@ -8,3 +8,7 @@ add_executable(test_stack_allocator ${CUTL_ALLOCATOR_TEST_FILES} test_stack_allo
 target_link_libraries(test_stack_allocator PRIVATE cutl)
 add_test(NAME stack_allocator COMMAND test_stack_allocator 123)
 
+add_executable(test_block_allocator ${CUTL_ALLOCATOR_TEST_FILES} test_block_allocator.c)
+target_link_libraries(test_block_allocator PRIVATE cutl)
+add_test(NAME block_allocator COMMAND test_block_allocator 123)
+
