@@ -130,7 +130,7 @@ cutl_result_t cutl_allocator_block_reallocate(cutl_allocator_block_t *const this
                                               void **const p_memory)
 {
     // Just check that the memory passed to the function was from this allocator
-    const auto offset = address_to_offset(this, memory);
+    auto const offset = address_to_offset(this, memory);
     if (offset == ~(uintptr_t)0 || offset < ALLOCATOR_GUARD_BYTE_COUNT)
         return CUTL_RESULT_MISMATCHED_ALLOCATOR;
 
@@ -141,6 +141,10 @@ cutl_result_t cutl_allocator_block_reallocate(cutl_allocator_block_t *const this
     // Ok, we are done now
     *p_memory = memory;
     return CUTL_SUCCESS;
+}
+unsigned cutl_allocator_block_get_block_size(const cutl_allocator_block_t *this)
+{
+    return this->block_size - 2LLU * ALLOCATOR_GUARD_BYTE_COUNT;
 }
 
 static void *wrap_allocate(void *state, const size_t size)

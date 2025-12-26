@@ -61,3 +61,11 @@ cutl_result_t cutl_allocator_block_deallocate(cutl_allocator_block_t *this, void
  * @return CUTL_SUCCESS if successful, otherwise an error code indicating the reason for failure.
  */
 cutl_result_t cutl_allocator_block_reallocate(cutl_allocator_block_t *this, void *memory, size_t size, void **p_memory);
+
+/**
+ * Find the real usable size of blocks, which is typically larger to satisfy alignment requirements.
+ *
+ * @param this Allocator to get the block size from.
+ * @return Real usable size of blocks.
+ */
+unsigned cutl_allocator_block_get_block_size(const cutl_allocator_block_t *this);

@@ -19,6 +19,7 @@ const char *cutl_result_to_string(const cutl_result_t result)
         VALUE_STRING(CUTL_RESULT_CORRUPTED_POINTER);
         VALUE_STRING(CUTL_RESULT_DOUBLE_DEALLOCATION);
         VALUE_STRING(CUTL_RESULT_OUT_OF_MEMORY);
+        VALUE_STRING(CUTL_RESULT_INDEX_OUT_OF_BOUNDS);
     }
 #undef VALUE_STRING
     return "INVALID";
@@ -44,6 +45,8 @@ const char *cutl_result_message(const cutl_result_t result)
         return "Memory was already deallocated";
     case CUTL_RESULT_OUT_OF_MEMORY:
         return "Out of memory";
+    case CUTL_RESULT_INDEX_OUT_OF_BOUNDS:
+        return "Specified index was out of bounds";
     }
     return "Unknown result";
 }

@@ -10,6 +10,7 @@ typedef enum
     CUTL_RESULT_MISMATCHED_ALLOCATOR,
     CUTL_RESULT_CORRUPTED_POINTER,
     CUTL_RESULT_DOUBLE_DEALLOCATION,
+    CUTL_RESULT_INDEX_OUT_OF_BOUNDS,
 } cutl_result_t;
 
 const char *cutl_result_to_string(cutl_result_t result);

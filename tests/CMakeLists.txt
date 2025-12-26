@@ -4,3 +4,4 @@ list(APPEND CUTL_TEST_COMMMON_SOURCES
 enable_testing()
 add_subdirectory(iterators)
 add_subdirectory(allocators)
+add_subdirectory(string)
