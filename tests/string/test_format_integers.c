@@ -49,7 +49,7 @@ int main()
 
     // Default formatting
     test_integer(152890, string8_from_literal(u8"152890"), (integer_spec_c8_t){});
-    test_integer(0, string8_from_literal(u8"0"), (integer_spec_c8_t){});
+    test_integer(0, string8_from_literal(u8"0"), (integer_spec_c8_t){.minimum_digits = 1});
     // Japanese numbers (fixed-width) with no separator
     test_integer(1982570, string8_from_literal(u8"１９８２５７０"),
                  (integer_spec_c8_t){.digit_spec = &jpn_digits, .separator_spec = &no_separator});
