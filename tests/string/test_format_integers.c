@@ -44,11 +44,8 @@ int main()
                                             [9] = string8_from_literal(u8"９"),
                                         }};
     digit_spec_c8_t hex_digits = DIGIT_SPEC_HEXADECIMAL;
-    hex_digits.minimum_count = 18;
     const separator_spec_c8_t no_separator = {.separator_distance = 0};
     const separator_spec_c8_t hex_separator = {.separator_distance = 2, .minor_separator = string8_from_literal(u8":")};
-    const sign_spec_c8_t always_sign = {
-        .always_sign = true, .plus = string8_from_literal(u8"+"), .minus = string8_from_literal(u8"-")};
 
     // Default formatting
     test_integer(152890, string8_from_literal(u8"152890"), (integer_spec_c8_t){});
@@ -63,60 +60,68 @@ int main()
     test_integer(+0x123456789abcdef, string8_from_literal(u8"+1:23:45:67:89:ab:cd:ef"),
                  (integer_spec_c8_t){.digit_spec = &DIGIT_SPEC_HEXADECIMAL_LOWER,
                                      .separator_spec = &hex_separator,
-                                     .sign_spec = &always_sign});
+                                     .always_sign = true});
     // Preceding zeros
     test_integer(+0x123456789abcdef, string8_from_literal(u8"+00:01:23:45:67:89:AB:CD:EF"),
                  (integer_spec_c8_t){
                      .digit_spec = &hex_digits,
                      .separator_spec = &hex_separator,
-                     .sign_spec = &always_sign,
+                     .always_sign = true,
+                     .minimum_digits = 18,
                  });
     // MOAR Preceding zeros
-    hex_digits.minimum_count += 3;
     test_integer(-0x123456789abcdef, string8_from_literal(u8"-0:00:00:01:23:45:67:89:AB:CD:EF"),
                  (integer_spec_c8_t){
                      .digit_spec = &hex_digits,
                      .separator_spec = &hex_separator,
-                     .sign_spec = &always_sign,
+                     .always_sign = true,
+                     .minimum_digits = 21,
                  });
 
-
     // Pad far left
-    const padding_spec_c8_t pad_left = {.padding_max = 35, .padding = string8_from_literal("*"), .direction = PADDING_LEFT};
+    const padding_spec_c8_t pad_left = {
+        .padding_max = 35, .padding = string8_from_literal("*"), .direction = PADDING_LEFT};
     test_integer(-0x123456789abcdef, string8_from_literal(u8"***-0:00:00:01:23:45:67:89:AB:CD:EF"),
                  (integer_spec_c8_t){
                      .digit_spec = &hex_digits,
                      .separator_spec = &hex_separator,
-                     .sign_spec = &always_sign,
+                     .always_sign = true,
+                     .minimum_digits = 21,
                      .padding_spec = &pad_left,
                  });
 
     // Pad far right
-    const padding_spec_c8_t pad_right = {.padding_max = 36, .padding = string8_from_literal("*"), .direction = PADDING_RIGHT};
+    const padding_spec_c8_t pad_right = {
+        .padding_max = 36, .padding = string8_from_literal("*"), .direction = PADDING_RIGHT};
     test_integer(-0x123456789abcdef, string8_from_literal(u8"-0:00:00:01:23:45:67:89:AB:CD:EF****"),
                  (integer_spec_c8_t){
                      .digit_spec = &hex_digits,
                      .separator_spec = &hex_separator,
-                     .sign_spec = &always_sign,
+                     .always_sign = true,
+                     .minimum_digits = 21,
                      .padding_spec = &pad_right,
                  });
 
     // Pad far right bias
-    const padding_spec_c8_t pad_right_c = {.padding_max = 37, .padding = string8_from_literal("*"), .direction = PADDING_BOTH_R};
+    const padding_spec_c8_t pad_right_c = {
+        .padding_max = 37, .padding = string8_from_literal("*"), .direction = PADDING_BOTH_R};
     test_integer(-0x123456789abcdef, string8_from_literal(u8"**-0:00:00:01:23:45:67:89:AB:CD:EF***"),
                  (integer_spec_c8_t){
                      .digit_spec = &hex_digits,
                      .separator_spec = &hex_separator,
-                     .sign_spec = &always_sign,
+                     .always_sign = true,
+                     .minimum_digits = 21,
                      .padding_spec = &pad_right_c,
                  });
     // Pad far left bias
-    const padding_spec_c8_t pad_left_c = {.padding_max = 37, .padding = string8_from_literal("*"), .direction = PADDING_BOTH_L};
+    const padding_spec_c8_t pad_left_c = {
+        .padding_max = 37, .padding = string8_from_literal("*"), .direction = PADDING_BOTH_L};
     test_integer(-0x123456789abcdef, string8_from_literal(u8"***-0:00:00:01:23:45:67:89:AB:CD:EF**"),
                  (integer_spec_c8_t){
                      .digit_spec = &hex_digits,
                      .separator_spec = &hex_separator,
-                     .sign_spec = &always_sign,
+                     .always_sign = true,
+                     .minimum_digits = 21,
                      .padding_spec = &pad_left_c,
                  });
 
@@ -124,7 +129,6 @@ int main()
     const sign_spec_c8_t very_positive_sign = {
         .plus = string8_from_literal(u8"++++++++"),
         .minus = string8_from_literal(u8"-"),
-        .always_sign = true,
     };
     test_integer(0x123456789abcdef, string8_from_literal(u8"***++++++++0:00:00:01:23:45:67:89:AB:CD:EF**"),
                  (integer_spec_c8_t){
@@ -132,6 +136,9 @@ int main()
                      .separator_spec = &hex_separator,
                      .sign_spec = &very_positive_sign,
                      .padding_spec = &pad_left_c,
+                     .always_sign = true,
+                     .minimum_digits = 21,
+
                  });
 
     return 0;

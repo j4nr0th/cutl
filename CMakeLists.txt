@@ -35,6 +35,7 @@ add_library(cutl STATIC
         ${CUTL_ALLOCATOR_SOURCES}
         ${CUTL_STRING_SOURCES}
 )
+target_link_libraries(cutl PUBLIC m)
 
 target_compile_definitions(cutl PUBLIC CUTL_ENABLE_ASSERTS)
 target_compile_options(cutl PRIVATE -Wall -Wextra)

@@ -8,16 +8,12 @@ typedef struct
 {
     unsigned base;           // Numeric base of digits
     const string8_t *digits; // Individual digits in increasing value.
-    unsigned minimum_count;  // If fewer than this many digits are found, zeros are added ahead of the number
 } digit_spec_c8_t;
-
-extern const digit_spec_c8_t DIGIT_SPEC_DECIMAL_ISO;
 
 typedef struct
 {
-    string8_t plus;   // Sign to use for "+"
-    string8_t minus;  // Sign to use for "-"
-    bool always_sign; // Always print the sign, even for positive numbers
+    string8_t plus;  // Sign to use for "+"
+    string8_t minus; // Sign to use for "-"
 } sign_spec_c8_t;
 
 typedef struct
@@ -51,9 +47,9 @@ typedef struct
     const sign_spec_c8_t *sign_spec;           // Specifications for formatting signs
     const separator_spec_c8_t *separator_spec; // Specifications for formatting separators
     const padding_spec_c8_t *padding_spec;     // Specifications for formatting padding
+    unsigned minimum_digits; // If fewer than this many digits are found, zeros are added ahead of the number
+    bool always_sign;        // Always print the sign, even for positive numbers
 } integer_spec_c8_t;
-
-extern const integer_spec_c8_t INTEGER_SPEC_DECIMAL_ISO;
 
 size_t format8_integer_length(intmax_t value, integer_spec_c8_t spec);
 
@@ -64,14 +60,35 @@ cutl_result_t format8_integer(intmax_t value, string8_t output, integer_spec_c8_
  */
 typedef struct
 {
-    integer_spec_c8_t digit_specification;
-    string8_t decimal_point;
+    const digit_spec_c8_t *digit_spec;         // Specifications for formatting digits
+    const sign_spec_c8_t *sign_spec;           // Specifications for formatting signs
+    const separator_spec_c8_t *separator_spec; // Specifications for formatting separators
+    const padding_spec_c8_t *padding_spec;     // Specifications for formatting padding
+    unsigned minimum_digits;    // If fewer than this many digits are found, zeros are added ahead of the number
+    unsigned fractional_digits; // These many digits are shown for behind the decimal point
+    bool always_sign;           // Always print the sign, even for positive numbers
 } float_spec_c8_t;
 
-extern const float_spec_c8_t FLOAT_SPEC_DECIMAL_ISO;
+size_t format8_float_length(double value, float_spec_c8_t spec);
+
+cutl_result_t format8_float(double value, string8_t output, float_spec_c8_t spec);
+
+/**
+ * Specifications of how floating point numbers are formatted.
+ */
+typedef struct
+{
+    const digit_spec_c8_t *digit_spec;         // Specifications for formatting digits
+    const sign_spec_c8_t *sign_spec;           // Specifications for formatting signs
+    const separator_spec_c8_t *separator_spec; // Specifications for formatting separators
+    const padding_spec_c8_t *padding_spec;     // Specifications for formatting padding
+    unsigned digits_front;                     // Number of digits before the
+    unsigned digits_back;                      // These many digits are shown for behind the decimal point
+    bool always_sign_value;                    // Always print the sign, even for positive numbers
+    bool always_sign_exponent;                 // Always print the sign, even for positive numbers
+} exponential_spec_c8_t;
 
 // Some common specs
-
 extern const digit_spec_c8_t DIGIT_SPEC_DECIMAL;
 extern const digit_spec_c8_t DIGIT_SPEC_HEXADECIMAL;
 extern const digit_spec_c8_t DIGIT_SPEC_HEXADECIMAL_LOWER;
