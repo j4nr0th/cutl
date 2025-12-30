@@ -73,6 +73,13 @@ size_t format8_float_length(double value, float_spec_c8_t spec);
 
 cutl_result_t format8_float(double value, string8_t output, float_spec_c8_t spec);
 
+typedef struct
+{
+    string8_t exponent_prefix; // To put in front of the exponent value
+    string8_t exponent_suffix; // To put after the exponent value
+    bool use_separators;       // Should we put minor separators in the value?
+} exponent_spec_c8_t;
+
 /**
  * Specifications of how floating point numbers are formatted.
  */
@@ -82,11 +89,18 @@ typedef struct
     const sign_spec_c8_t *sign_spec;           // Specifications for formatting signs
     const separator_spec_c8_t *separator_spec; // Specifications for formatting separators
     const padding_spec_c8_t *padding_spec;     // Specifications for formatting padding
-    unsigned digits_front;                     // Number of digits before the
-    unsigned digits_back;                      // These many digits are shown for behind the decimal point
+    const exponent_spec_c8_t *exponent_spec;   // Specifications for formatting the exponent part
+    unsigned fractional_digits;                // These many digits are shown for behind the decimal point
+    unsigned minimum_exponent_digits;          // Always print at least this many digits for the exponent
     bool always_sign_value;                    // Always print the sign, even for positive numbers
-    bool always_sign_exponent;                 // Always print the sign, even for positive numbers
+    bool always_exponent_sign;                 // Always print the sign for the exponent, even for positive numbers
+    bool skip_zero_exponent;                   // Do not print the exponent when it is 0
+    bool use_exponent_suffix;                  // Print the exponent suffix
 } exponential_spec_c8_t;
+
+size_t format8_exponential_length(double value, exponential_spec_c8_t spec);
+
+cutl_result_t format8_exponential(double value, string8_t output, exponential_spec_c8_t spec);
 
 // Some common specs
 extern const digit_spec_c8_t DIGIT_SPEC_DECIMAL;
