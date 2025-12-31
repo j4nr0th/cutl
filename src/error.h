@@ -11,6 +11,8 @@ typedef enum
     CUTL_RESULT_CORRUPTED_POINTER,
     CUTL_RESULT_DOUBLE_DEALLOCATION,
     CUTL_RESULT_INDEX_OUT_OF_BOUNDS,
+    CUTL_RESULT_CALLBACK_FAILURE,
+    CUTL_RESULT_INVALID_TYPE_ENUM,
 } cutl_result_t;
 
 const char *cutl_result_to_string(cutl_result_t result);

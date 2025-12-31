@@ -9,7 +9,7 @@
 
 // Fallback definitions
 #ifndef CUTL_ARRAY_ARG
-#    define CUTL_ARRAY_ARG(array, attrib) *array
+#    define CUTL_ARRAY_ARG(array, attrib) array[]
 #endif
 
 #ifndef CUTL_DEBUG_BREAK

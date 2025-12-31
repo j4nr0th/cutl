@@ -10,3 +10,6 @@ add_executable(test_format_exponential ${CUTL_TEST_COMMMON_SOURCES} test_format_
 target_link_libraries(test_format_exponential PRIVATE cutl)
 add_test(NAME format_exponential COMMAND test_format_exponential)
 
+add_executable(test_string_stream ${CUTL_TEST_COMMON_SOURCES} test_string_stream.c)
+target_link_libraries(test_string_stream PRIVATE cutl)
+add_test(NAME string_stream COMMAND test_string_stream)

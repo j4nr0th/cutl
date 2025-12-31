@@ -21,11 +21,15 @@ set(CUTL_ALLOCATOR_SOURCES
 set(CUTL_STRING_SOURCES
         src/string/string8.c
         src/string/format8.c
-        src/string/format8.h
+        src/string/output_stream.c
+        src/string/string_stream.c
+        src/string/string_stream.h
 )
 
 set(CUTL_COMMON_SOURCES
         src/error.c
+        src/string/format_defaults.c
+        src/string/format_defaults.h
 )
 
 

@@ -20,6 +20,8 @@ const char *cutl_result_to_string(const cutl_result_t result)
         VALUE_STRING(CUTL_RESULT_DOUBLE_DEALLOCATION);
         VALUE_STRING(CUTL_RESULT_OUT_OF_MEMORY);
         VALUE_STRING(CUTL_RESULT_INDEX_OUT_OF_BOUNDS);
+        VALUE_STRING(CUTL_RESULT_CALLBACK_FAILURE);
+        VALUE_STRING(CUTL_RESULT_INVALID_TYPE_ENUM);
     }
 #undef VALUE_STRING
     return "INVALID";
@@ -47,6 +49,10 @@ const char *cutl_result_message(const cutl_result_t result)
         return "Out of memory";
     case CUTL_RESULT_INDEX_OUT_OF_BOUNDS:
         return "Specified index was out of bounds";
+    case CUTL_RESULT_CALLBACK_FAILURE:
+        return "Callback passed to the function indicated failure";
+    case CUTL_RESULT_INVALID_TYPE_ENUM:
+        return "Invalid value of enum used to indicate a type was passed to the function";
     }
     return "Unknown result";
 }

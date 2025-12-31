@@ -27,6 +27,11 @@ static void failed_assertion(const char *file, const int line, const char *funct
 #define TEST_ASSERTION(expr, msg, ...)                                                                                 \
     ((expr) ? (void)0 : failed_assertion(__FILE__, __LINE__, __func__, #expr, msg __VA_OPT__(, ) __VA_ARGS__))
 
+#define TEST_CUTL_RESULT(res, expr, v)                                                                                 \
+    TEST_ASSERTION((res = (expr)) == (v), "\"%s\" failed with an error: : (%s) - %s.", #expr,                          \
+                   cutl_result_to_string(res), cutl_result_message(res))
+
+
 static void test_numbers_close(const char *file, const int line, const char *function, const double x, const double y,
                                const double atol, const double rtol)
 {
