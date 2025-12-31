@@ -12,7 +12,7 @@
 //         printf(" %hhd", val[i]);
 // }
 
-static int are_permutations_equal(const unsigned r, const unsigned char a[static r], const unsigned char b[static r])
+static int are_combinations_equal(const unsigned r, const unsigned char a[static r], const unsigned char b[static r])
 {
     for (unsigned i = 0; i < r; ++i)
     {
@@ -46,7 +46,7 @@ static void test_permutations(const unsigned char n, const unsigned char r)
         // Check the current iteration does not repeat!
         for (unsigned i = 0; i < cnt; ++i)
         {
-            TEST_ASSERTION(!are_permutations_equal(r, current_permutation, previous_permutations + (size_t)(i * r)),
+            TEST_ASSERTION(!are_combinations_equal(r, current_permutation, previous_permutations + (size_t)(i * r)),
                            "Permutation should not repeat, but permutation %u and %u are the same.", cnt + 1, i + 1);
         }
 

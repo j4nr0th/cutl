@@ -23,6 +23,7 @@ cutl_result_t string_stream_write_s8(string_stream_t *this, const string8_t str)
 
     memcpy(this->buffer + this->buffer_pos, str.data, str.length);
     this->buffer_pos += str.length;
+    return CUTL_SUCCESS;
 }
 
 cutl_result_t string_stream_write_cstr(string_stream_t *this, const char *str)
@@ -32,6 +33,7 @@ cutl_result_t string_stream_write_cstr(string_stream_t *this, const char *str)
         return CUTL_RESULT_INSUFFICIENT_BUFFER;
     memcpy(this->buffer + this->buffer_pos, str, len);
     this->buffer_pos += len;
+    return CUTL_SUCCESS;
 }
 
 static string8_t string_stream_get_output_string(string_stream_t *this, const size_t required_memory)

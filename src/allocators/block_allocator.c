@@ -19,18 +19,18 @@ static bool block_get_state(const cutl_allocator_block_t *const this, const unsi
     return (bool)(this->memory[block_idx / 8] & (1 << (block_idx % 8)));
 }
 
-static void print_block_info(const cutl_allocator_block_t *const this)
-{
-    printf("Block allocator with %u blocks of size %u\n", this->block_count, this->block_size);
-    printf("Block counters:\n");
-    for (unsigned i = 0; i < this->block_count; ++i)
-    {
-        auto const block_state = block_get_state(this, i);
-        printf("%c", block_state ? 'X' : '.');
-        if ((i + 1) % 8 == 0)
-            printf("\n");
-    }
-}
+// static void print_block_info(const cutl_allocator_block_t *const this)
+// {
+//     printf("Block allocator with %u blocks of size %u\n", this->block_count, this->block_size);
+//     printf("Block counters:\n");
+//     for (unsigned i = 0; i < this->block_count; ++i)
+//     {
+//         auto const block_state = block_get_state(this, i);
+//         printf("%c", block_state ? 'X' : '.');
+//         if ((i + 1) % 8 == 0)
+//             printf("\n");
+//     }
+// }
 
 static void block_set_state(cutl_allocator_block_t *const this, const unsigned block_idx, const bool new_state)
 {

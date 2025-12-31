@@ -136,33 +136,33 @@ static void *make_block_guarded(const cutl_allocator_fs_t *const this, const mem
     return (void *)(block_start + ALLOCATOR_GUARD_BYTE_COUNT);
 }
 
-static void print_current_blocks(cutl_allocator_fs_t *const this)
-{
-    printf("Current blocks in allocator %p: %zu (%zu free)\nblock,offset,end,size,state\n", this, this->block_count,
-           this->free_blocks);
-    auto const block_array = fixed_size_allocator_get_all_blocks(this);
-    for (size_t i_block = 0; i_block < this->block_count; ++i_block)
-    {
-        const memory_block_info_t *const block = block_array + i_block;
-        const char *block_state;
-        switch (block->state)
-        {
-        case MEMORY_BLOCK_FREE:
-            block_state = "FREE";
-            break;
-        case MEMORY_BLOCK_USED:
-            block_state = "USED";
-            break;
-        case MEMORY_BLOCK_MERGED:
-            block_state = "MERGED";
-            break;
-        default:
-            block_state = "UNKNOWN";
-            break;
-        }
-        printf("%zu,%zu,%zu,%zu,%s\n", i_block, block->offset, block->offset + block->size, block->size, block_state);
-    }
-}
+// static void print_current_blocks(cutl_allocator_fs_t *const this)
+// {
+//     printf("Current blocks in allocator %p: %zu (%zu free)\nblock,offset,end,size,state\n", this, this->block_count,
+//            this->free_blocks);
+//     auto const block_array = fixed_size_allocator_get_all_blocks(this);
+//     for (size_t i_block = 0; i_block < this->block_count; ++i_block)
+//     {
+//         const memory_block_info_t *const block = block_array + i_block;
+//         const char *block_state;
+//         switch (block->state)
+//         {
+//         case MEMORY_BLOCK_FREE:
+//             block_state = "FREE";
+//             break;
+//         case MEMORY_BLOCK_USED:
+//             block_state = "USED";
+//             break;
+//         case MEMORY_BLOCK_MERGED:
+//             block_state = "MERGED";
+//             break;
+//         default:
+//             block_state = "UNKNOWN";
+//             break;
+//         }
+//         printf("%zu,%zu,%zu,%zu,%s\n", i_block, block->offset, block->offset + block->size, block->size, block_state);
+//     }
+// }
 
 /** Allocate a new block of the required size from the fixed-size allocator.
  *

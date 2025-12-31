@@ -6,8 +6,7 @@ set(CMAKE_C_STANDARD 23)
 set(CUTL_ITERATOR_SOURCES
         src/iterators/multidim_iteration.c
         src/iterators/permutations.c
-        src/iterators/multidim_iteration.c
-        src/iterators/permutations.c
+        src/iterators/combinations.c
 )
 
 set(CUTL_ALLOCATOR_SOURCES
@@ -23,13 +22,11 @@ set(CUTL_STRING_SOURCES
         src/string/format8.c
         src/string/output_stream.c
         src/string/string_stream.c
-        src/string/string_stream.h
+        src/string/format_defaults.c
 )
 
 set(CUTL_COMMON_SOURCES
         src/error.c
-        src/string/format_defaults.c
-        src/string/format_defaults.h
 )
 
 
@@ -38,6 +35,7 @@ add_library(cutl STATIC
         ${CUTL_ITERATOR_SOURCES}
         ${CUTL_ALLOCATOR_SOURCES}
         ${CUTL_STRING_SOURCES}
+        ${CUTL_THREAD_SOURCES}
 )
 target_link_libraries(cutl PUBLIC m)
 

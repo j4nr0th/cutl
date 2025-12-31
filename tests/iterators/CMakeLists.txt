@@ -13,3 +13,7 @@ add_test(NAME multidim_3d COMMAND test_multidim_3d 13 7 17)
 add_executable(test_perm ${CUTL_TEST_COMMON_SOURCES} test_permutations.c)
 target_link_libraries(test_perm PRIVATE cutl)
 add_test(NAME permutations COMMAND test_perm)
+
+add_executable(test_comb ${CUTL_TEST_COMMON_SOURCES} test_combinations.c)
+target_link_libraries(test_comb PRIVATE cutl)
+add_test(NAME combinations COMMAND test_comb)
