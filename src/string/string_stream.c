@@ -36,6 +36,14 @@ cutl_result_t string_stream_write_cstr(string_stream_t *this, const char *str)
     return CUTL_SUCCESS;
 }
 
+/**
+ * Get a string of the desired length from a string stream, which will be written to, while also moving the position
+ * forward.
+ *
+ * @param this String stream to get the string to write to.
+ * @param required_memory Required size of the output string.
+ * @return String which is to be used to write to.
+ */
 static string8_t string_stream_get_output_string(string_stream_t *this, const size_t required_memory)
 {
     CUTL_ASSERT(required_memory <= this->buffer_size - this->buffer_pos, "Buffer too small for output string.");
@@ -123,7 +131,7 @@ string8_t string_stream_get_string(string_stream_t *this)
 cutl_result_t string_stream_format(string_stream_t *this, const fmt_arg_t args[])
 {
     cutl_result_t res;
-    for (res = CUTL_SUCCESS; res == CUTL_SUCCESS && args->type != FMT_NONE; ++args)
+    for (res = CUTL_SUCCESS; res == CUTL_SUCCESS && args->type != FMT_END; ++args)
     {
         switch (args->type)
         {

@@ -51,8 +51,26 @@ typedef struct
     bool always_sign;        // Always print the sign, even for positive numbers
 } integer_spec_c8_t;
 
+/**
+ * Calculates the length, in bytes, required to format an integer based on the provided formatting specifications.
+ *
+ * @param value The integer value to be formatted.
+ * @param spec An `integer_spec_c8_t` structure containing specifications for formatting the integer. This
+ *             includes rules for digit representation, sign handling, padding, and separators.
+ * @return The number of bytes required to format the integer.
+ */
 size_t format8_integer_length(intmax_t value, integer_spec_c8_t spec);
 
+/**
+ * Formats an integer value into a string representation based on the provided specifications.
+ *
+ * @param value The integer value to be formatted.
+ * @param output The output string where the formatted result will be stored.
+ *               The length of this string must match the required length for the formatted value.
+ * @param spec The specifications for formatting the integer, including padding, signs, separators, and digit
+ *             formatting.
+ * @return A cutl_result_t value indicating the success or failure of the operation.
+ */
 cutl_result_t format8_integer(intmax_t value, string8_t output, integer_spec_c8_t spec);
 
 /**
@@ -69,8 +87,26 @@ typedef struct
     bool always_sign;           // Always print the sign, even for positive numbers
 } float_spec_c8_t;
 
+/**
+ * Calculates the length, in bytes, required to format a float based on the provided formatting specifications.
+ *
+ * @param value The float value to be formatted.
+ * @param spec An `float_spec_c8_t` structure containing specifications for formatting the float. This
+ *             includes rules for digit representation, sign handling, padding, and separators.
+ * @return The number of bytes required to format the float.
+ */
 size_t format8_float_length(double value, float_spec_c8_t spec);
 
+/**
+ * Formats a float value into a string representation based on the provided specifications.
+ *
+ * @param value The float value to be formatted.
+ * @param output The output string where the formatted result will be stored.
+ *               The length of this string must match the required length for the formatted value.
+ * @param spec The specifications for formatting the float, including padding, signs, separators, and digit
+ *             formatting.
+ * @return A cutl_result_t value indicating the success or failure of the operation.
+ */
 cutl_result_t format8_float(double value, string8_t output, float_spec_c8_t spec);
 
 typedef struct
@@ -98,16 +134,59 @@ typedef struct
     bool use_exponent_suffix;                  // Print the exponent suffix
 } exponential_spec_c8_t;
 
+/**
+ * Calculates the length, in bytes, required to format a float based on the provided exponential formatting
+ * specifications.
+ *
+ * @param value The float value to be formatted.
+ * @param spec An `exponential_spec_c8_t` structure containing specifications for formatting the float in the
+ *             exponential format. This includes rules for digit representation, sign handling, padding, and separators.
+ * @return The number of bytes required to format the float.
+ */
 size_t format8_exponential_length(double value, exponential_spec_c8_t spec);
 
+/**
+ * Formats a float value into an exponential string representation based on the provided specifications.
+ *
+ * @param value The float value to be formatted.
+ * @param output The output string where the formatted result will be stored.
+ *               The length of this string must match the required length for the formatted value.
+ * @param spec The specifications for formatting the exponential float, including padding, signs, separators, and digit
+ *             formatting.
+ * @return A cutl_result_t value indicating the success or failure of the operation.
+ */
 cutl_result_t format8_exponential(double value, string8_t output, exponential_spec_c8_t spec);
 
 // Some common specs
+
+/**
+ * Decimal digits.
+ */
 extern const digit_spec_c8_t DIGIT_SPEC_DECIMAL;
+
+/**
+ * Hexadecimal digits with capital letters.
+ */
 extern const digit_spec_c8_t DIGIT_SPEC_HEXADECIMAL;
+
+/**
+ * Hexadecimal digits with lower case letters.
+ */
 extern const digit_spec_c8_t DIGIT_SPEC_HEXADECIMAL_LOWER;
 
+/**
+ * No minor separators and a dot for separating the integer and fractional part.
+ */
 extern const separator_spec_c8_t SEPARATOR_SPEC_NONE;
+
+/**
+ * Numeric separators as defined by ISO for numbers:
+ * - Dot for integer and fraction part separation (major separator),
+ * - Space as the separator ever 3 digits of either integer or float part (minor separator)
+ */
 extern const separator_spec_c8_t SEPARATOR_SPEC_ISO;
 
+/**
+ * Basic sign specs, with + and - for positive and negative numbers respectively.
+ */
 extern const sign_spec_c8_t SIGN_SPEC_BASIC;

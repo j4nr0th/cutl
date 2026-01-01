@@ -5,11 +5,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/**
+ * Allocator well suited for FIFO allocations. Allocations are made and freed from the top of the stack.
+ */
 typedef struct
 {
     cutl_allocator_t base;
-    size_t top;           // Top of the stack
-    size_t size;          // Total size of the stack
+    size_t top;                                // Top of the stack
+    size_t size;                               // Total size of the stack
     alignas(max_align_t) unsigned char data[]; // Remaining memory
 } cutl_allocator_stack_t;
 

@@ -4,6 +4,9 @@
 #include "allocators.h"
 #include <stddef.h>
 
+/**
+ * Allocator which allocates memory in blocks of fixed size.
+ */
 typedef struct
 {
     cutl_allocator_t base;                       // Allocator interface

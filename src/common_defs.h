@@ -1,6 +1,6 @@
 #pragma once
 
-// GCC definitions for basic building blocks
+// GCC definitions for parts of other macros
 #ifdef __GNUC__
 #    define CUTL_ARRAY_ARG(array, attrib) array[attrib]
 #    define CUTL_DEBUG_BREAK __builtin_trap()
@@ -19,7 +19,7 @@
 #    define CUTL_ASSUME(x) (void)(0)
 #endif
 
-// Using the building blocks to make more complicated utilities
+// Assert used to either validate assumptions at runtime, or otherwise specify them at compile time.
 #ifdef CUTL_ENABLE_ASSERTS
 #    include <stdio.h>
 #    include <stdlib.h>

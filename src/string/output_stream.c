@@ -18,22 +18,34 @@ cutl_result_t output_stream_init(FILE *const stream, const size_t size, unsigned
     return CUTL_SUCCESS;
 }
 
-void output_stream_flush(output_stream_t *this)
+[[nodiscard]]
+cutl_result_t output_stream_flush(output_stream_t *this)
 {
     if (this->buffer_pos == 0)
     {
-        return;
+        return CUTL_SUCCESS;
     }
 
     auto const bytes_written = fwrite(this->buffer, sizeof(*this->buffer), this->buffer_pos, this->stream);
-    (void)bytes_written;
+    if (bytes_written != this->buffer_pos)
+    {
+        return CUTL_RESULT_FILE_IO_FAILURE;
+    }
     CUTL_ASSERT(bytes_written == this->buffer_pos, "Could not write all bytes to stream: %s", strerror(errno));
-    fflush(this->stream);
+    auto const flush_res = fflush(this->stream);
     this->buffer_pos = 0;
+    if (flush_res != 0)
+    {
+        if (flush_res == EOF)
+            return CUTL_RESULT_FILE_IO_FAILURE;
+        return CUTL_RESULT_FAILURE;
+    }
+
+    return CUTL_SUCCESS;
 }
 
-static void output_stream_write_u8(output_stream_t *const this, size_t size,
-                                   const unsigned char CUTL_ARRAY_ARG(bytes, restrict static size))
+static cutl_result_t output_stream_write_u8(output_stream_t *const this, size_t size,
+                                            const unsigned char CUTL_ARRAY_ARG(bytes, restrict static size))
 {
     auto const remaining_space = this->buffer_size - this->buffer_pos;
     if (size > remaining_space)
@@ -42,28 +54,36 @@ static void output_stream_write_u8(output_stream_t *const this, size_t size,
         memcpy(this->buffer + this->buffer_pos, bytes, remaining_space);
         size -= remaining_space;
         bytes += remaining_space;
-        output_stream_flush(this);
+        auto const res = output_stream_flush(this);
+        if (res != CUTL_SUCCESS)
+            return res;
+
         // The remainder may still be too large
         if (size >= this->buffer_size)
         {
             // Just write the bytes directly, we cannot hold them in the buffer
             auto const bytes_written = fwrite(bytes, sizeof(*bytes), size, this->stream);
-            (void)bytes_written;
+            if (bytes_written != size)
+            {
+                return CUTL_RESULT_FILE_IO_FAILURE;
+            }
             CUTL_ASSERT(bytes_written == size, "Could not write all bytes to stream: %s", strerror(errno));
-            return;
+            return CUTL_SUCCESS;
         }
     }
 
     memcpy(this->buffer + this->buffer_pos, bytes, size);
     this->buffer_pos += size;
+
+    return CUTL_SUCCESS;
 }
 
-void output_stream_write_s8(output_stream_t *this, const string8_t str)
+cutl_result_t output_stream_write_s8(output_stream_t *this, const string8_t str)
 {
-    output_stream_write_u8(this, str.length, str.data);
+    return output_stream_write_u8(this, str.length, str.data);
 }
 
-void output_stream_write_cstr(output_stream_t *this, const char *str)
+cutl_result_t output_stream_write_cstr(output_stream_t *this, const char *str)
 {
     for (;;)
     {
@@ -77,24 +97,33 @@ void output_stream_write_cstr(output_stream_t *this, const char *str)
         // Did the loop finish because we reached the end of the string?
         if (str[i] == 0)
         {
-            return;
+            return CUTL_SUCCESS;
         }
         str += remaining_space;
+        auto const res = output_stream_flush(this);
         // Nope, we still have ways to go
-        output_stream_flush(this);
+        if (res != CUTL_SUCCESS)
+            return res;
     }
 }
 
-static string8_t output_stream_get_output_string(output_stream_t *this, const size_t needed_size)
+static cutl_result_t output_stream_get_output_string(output_stream_t *this, const size_t needed_size,
+                                                     string8_t *p_output)
 {
     CUTL_ASSERT(needed_size <= this->buffer_size, "Buffer too small for output string.");
     auto const remaining_space = this->buffer_size - this->buffer_pos;
     if (remaining_space < needed_size)
-        output_stream_flush(this);
-    const string8_t output = {.data = this->buffer + this->buffer_pos, .length = needed_size};
+    {
+        auto const res = output_stream_flush(this);
+        if (res != CUTL_SUCCESS)
+        {
+            return res;
+        }
+    }
+    *p_output = (string8_t){.data = this->buffer + this->buffer_pos, .length = needed_size};
     // Already adjust the buffer position
     this->buffer_pos += needed_size;
-    return output;
+    return CUTL_SUCCESS;
 }
 
 cutl_result_t output_stream_write_integer(output_stream_t *this, const intmax_t value, const integer_spec_c8_t *spec)
@@ -109,8 +138,11 @@ cutl_result_t output_stream_write_integer(output_stream_t *this, const intmax_t 
         return CUTL_RESULT_INSUFFICIENT_BUFFER;
     }
 
-    auto const output = output_stream_get_output_string(this, required_memory);
-    auto const res = format8_integer(value, output, *spec);
+    string8_t output;
+    auto res = output_stream_get_output_string(this, required_memory, &output);
+    if (res != CUTL_SUCCESS)
+        return res;
+    res = format8_integer(value, output, *spec);
     if (res != CUTL_SUCCESS)
     {
         // Roll back the buffer
@@ -128,8 +160,11 @@ cutl_result_t output_stream_write_float(output_stream_t *const this, const doubl
     if (required_memory > this->buffer_size)
         return CUTL_RESULT_INSUFFICIENT_BUFFER;
 
-    auto const output = output_stream_get_output_string(this, required_memory);
-    auto const res = format8_float(value, output, *spec);
+    string8_t output;
+    auto res = output_stream_get_output_string(this, required_memory, &output);
+    if (res != CUTL_SUCCESS)
+        return res;
+    res = format8_float(value, output, *spec);
     if (res != CUTL_SUCCESS)
     {
         this->buffer_pos -= output.length;
@@ -147,8 +182,11 @@ cutl_result_t output_stream_write_exponential(output_stream_t *const this, const
     if (required_memory > this->buffer_size)
         return CUTL_RESULT_INSUFFICIENT_BUFFER;
 
-    auto const output = output_stream_get_output_string(this, required_memory);
-    auto const res = format8_exponential(value, output, *spec);
+    string8_t output;
+    auto res = output_stream_get_output_string(this, required_memory, &output);
+    if (res != CUTL_SUCCESS)
+        return res;
+    res = format8_exponential(value, output, *spec);
     if (res != CUTL_SUCCESS)
     {
         this->buffer_pos -= output.length;
@@ -163,8 +201,11 @@ cutl_result_t output_stream_write_custom(output_stream_t *this, const format_len
     if (required_memory > this->buffer_size)
         return CUTL_RESULT_INSUFFICIENT_BUFFER;
 
-    auto const output = output_stream_get_output_string(this, required_memory);
-    auto const res = write_function(param, output.length, output.data);
+    string8_t output;
+    auto res = output_stream_get_output_string(this, required_memory, &output);
+    if (res != CUTL_SUCCESS)
+        return res;
+    res = write_function(param, output.length, output.data);
     if (res)
     {
         this->buffer_pos -= output.length;
@@ -176,7 +217,7 @@ cutl_result_t output_stream_write_custom(output_stream_t *this, const format_len
 cutl_result_t output_stream_format(output_stream_t *this, const fmt_arg_t args[])
 {
     cutl_result_t res;
-    for (res = CUTL_SUCCESS; res == CUTL_SUCCESS && args->type != FMT_NONE; ++args)
+    for (res = CUTL_SUCCESS; res == CUTL_SUCCESS && args->type != FMT_END; ++args)
     {
         switch (args->type)
         {

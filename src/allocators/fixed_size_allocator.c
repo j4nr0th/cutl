@@ -1,8 +1,12 @@
 #include "fixed_size_allocator.h"
 #include "allocator_internal.h"
 
-//  only for profiling
-// #define static
+typedef struct
+{
+    size_t offset;
+    size_t size;
+    memory_block_state_t state;
+} memory_block_info_t;
 
 /** Get the array of used memory blocks.
  *
@@ -160,7 +164,8 @@ static void *make_block_guarded(const cutl_allocator_fs_t *const this, const mem
 //             block_state = "UNKNOWN";
 //             break;
 //         }
-//         printf("%zu,%zu,%zu,%zu,%s\n", i_block, block->offset, block->offset + block->size, block->size, block_state);
+//         printf("%zu,%zu,%zu,%zu,%s\n", i_block, block->offset, block->offset + block->size, block->size,
+//         block_state);
 //     }
 // }
 
@@ -415,8 +420,6 @@ static unsigned find_memory_block_index_by_start(const unsigned block_cnt,
     }
     return block_cnt;
 }
-
-// TODO: currently the slowest part of the allocator is `fixed_buffer_deallocate_block`, so that can be sped up
 
 /** Deallocate the memory block and return it to the allocator.
  *

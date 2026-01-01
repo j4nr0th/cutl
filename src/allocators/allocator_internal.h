@@ -5,14 +5,12 @@
 #include <stdint.h>
 #include <string.h>
 
-typedef enum : unsigned char
+typedef enum : uint8_t
 {
-    BYTE_GUARD_UNUSED = 0b01010101,
-    BYTE_GUARD_FRESH = 0b10101010,
     BYTE_GUARD_IN_USE = 0b11001100,
 } memory_block_guard_bytes_t;
 
-typedef enum : unsigned char
+typedef enum : uint8_t
 {
     MEMORY_BLOCK_FREE,   // Block can be used to allocate memory
     MEMORY_BLOCK_USED,   // Block is currently used for an allocation
@@ -47,12 +45,6 @@ static inline size_t _round_align_ceil(const size_t size)
 static inline size_t _get_block_size(const size_t size)
 {
     return _round_align_ceil(_round_align_ceil(size) + 2LLU * ALLOCATOR_GUARD_BYTE_COUNT);
-}
-
-static inline void _prepare_block_fresh(const size_t size, void *const block)
-{
-    memset(block, BYTE_GUARD_UNUSED, ALLOCATOR_GUARD_BYTE_COUNT);
-    memset(block + size - ALLOCATOR_GUARD_BYTE_COUNT, BYTE_GUARD_UNUSED, ALLOCATOR_GUARD_BYTE_COUNT);
 }
 
 static inline void _prepare_block_used(const size_t size, void *const block)

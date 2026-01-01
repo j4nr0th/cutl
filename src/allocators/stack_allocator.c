@@ -188,7 +188,7 @@ cutl_result_t cutl_allocator_stack_reallocate(cutl_allocator_stack_t *const this
         return CUTL_SUCCESS;
     }
 
-    // TODO: technically, if the next block is free, we can try merging the two, then keep on going.
+    // NOTE: technically, if the next block is free, we can try merging the two, then keep on going.
     // We cannot grow it, so instead we just allocate a new block at the end of the stack.
     res = cutl_allocator_stack_allocate(this, adjusted_size, p_memory);
     if (res != CUTL_SUCCESS)

@@ -13,9 +13,9 @@ typedef struct
 } string8_t;
 
 /**
- * Wrap a typical null-terminated string as an utf-8 string.
+ * Wrap a typical null-terminated string as a string.
  *
- * @param str Pointer to a null-terminated string to wrap as an UTF-8 string.
+ * @param str Pointer to a null-terminated string to wrap as a string.
  * @return Wrapping struct.
  */
 static inline string8_t string8_from_cstr(const char *str)
@@ -24,7 +24,7 @@ static inline string8_t string8_from_cstr(const char *str)
 }
 
 /**
- * Wrap first `n` characters from an utf-8 string.
+ * Wrap first `n` characters from a string.
  *
  * @param str Pointer to the string to wrap.
  * @param size Number of elements to wrap.
@@ -36,7 +36,7 @@ static inline string8_t string8_from_cstr_n(const char *str, const size_t size)
 }
 
 /**
- * Wrap a single character as an UTF-8 string (equivalent to calling `string_utf8_from_cstr_n`).
+ * Wrap a single character as a string (equivalent to calling `string_utf8_from_cstr_n`).
  *
  * @param c Pointer to the character to wrap.
  * @return Wrapping struct.
@@ -53,7 +53,7 @@ static inline string8_t string8_from_char(const char *c)
     }
 
 /**
- * Extract a substring from an UTF-8 string.
+ * Extract a substring from a string.
  *
  * @param str String to extract the substring from.
  * @param start Position of the start of the substring.
@@ -147,3 +147,19 @@ string8_t string8_shrink(string8_t str, size_t n);
  * @return CUTL_SUCCESS if successful, CUTL_RESULT_INDEX_OUT_OF_BOUNDS if the segments would be out of bounds.
  */
 cutl_result_t string8_reorder(const string8_t *str, unsigned pos1, unsigned pos2, size_t len);
+
+/**
+ * Get the string representation of a ``cutl_result_t`` value.
+ *
+ * @param result Value to convert to a string.
+ * @return Statically allocated string representation of ``result``.
+ */
+string8_t cutl_result_to_string8(cutl_result_t result);
+
+/**
+ * Get the meaning of the ``cutl_result_t`` value.
+ *
+ * @param result Value to get the meaning of.
+ * @return Statically allocated string representation of the ``result``.
+ */
+string8_t cutl_result_message_s8(cutl_result_t result);

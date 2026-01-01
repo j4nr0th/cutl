@@ -2,7 +2,7 @@
 
 enum : size_t
 {
-    STD_ALLOCATOR_MAGIC = 0xB160B00B1354BABE
+    STD_ALLOCATOR_MAGIC = 0xB160B00B1354BABE // :P
 };
 
 #define CHECK_STD_MAGIC(state)                                                                                         \
@@ -88,7 +88,10 @@ void *cutl_alloc(const cutl_allocator_t *allocator, const size_t size)
 void *cutl_realloc(const cutl_allocator_t *allocator, void *ptr, const size_t new_size)
 {
     if (new_size == 0)
+    {
+        cutl_dealloc(allocator, ptr);
         return nullptr;
+    }
     if (ptr == nullptr)
         return cutl_alloc(allocator, new_size);
     return allocator->reallocate(allocator->state, ptr, new_size);

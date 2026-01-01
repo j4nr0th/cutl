@@ -3,13 +3,6 @@
 #include "allocator_internal.h"
 #include "allocators.h"
 
-typedef struct
-{
-    size_t offset;
-    size_t size;
-    memory_block_state_t state;
-} memory_block_info_t;
-
 /* Allocator with a fixed memory pool
  *
  * It uses its memory pool to store block information and for backing made allocations.

@@ -5,6 +5,15 @@
 #include <float.h>
 #include <math.h>
 
+/**
+ * Extracts the next least significant digit from the given value based on the specified numeric base.
+ * The input value is modified in-place by dividing it by the base.
+ *
+ * @param v A pointer to the numeric value from which the next digit will be extracted.
+ *          The value is updated in-place by integer division with the base.
+ * @param base The numeric base used to determine the digit (e.g., 10 for decimal, 16 for hexadecimal).
+ * @return The extracted digit, corresponding to the remainder of the division of *v by base.
+ */
 static unsigned extract_next_digit(uintmax_t *v, const unsigned base)
 {
     if (*v == 0)
@@ -15,19 +24,37 @@ static unsigned extract_next_digit(uintmax_t *v, const unsigned base)
     return digit;
 }
 
+/**
+ * Enum specifying the sign that is to be used for representing the number.
+ */
 typedef enum : unsigned char
 {
-    SIGN_NONE = 0,
-    SIGN_POSITIVE = 1,
-    SIGN_NEGATIVE = 2,
+    SIGN_NONE = 0,     // No sign is to be printed (implicitly the number was positive)
+    SIGN_POSITIVE = 1, // Print the positive sign (explicitly positive)
+    SIGN_NEGATIVE = 2, // Print the negative sign (explicitly negative)
 } number_sign_t;
 
+/**
+ * Type used to return internal sizing information.
+ */
 typedef struct
 {
     unsigned bytes; // Number of bytes to store all character units
     unsigned units; // Number of character units
 } character_requirements_t;
 
+/**
+ * Computes the character requirements for representing a numeric value as a string based on the provided digit
+ * specification and minimum digit requirements. The character requirements include the total number of bytes required
+ * for storage and the number of character units used.
+ *
+ * @param value The numeric value for which the character requirements will be computed.
+ * @param digit_spec A pointer to the digit specification that defines the numeric base and the properties of the
+ * individual digits.
+ * @param min_digits The minimum number of digit units required in the output representation.
+ * @return A structure containing the total number of bytes and the total number of character units required to
+ * represent the numeric value.
+ */
 static character_requirements_t compute_digit_requirements(uintmax_t value, const digit_spec_c8_t *const digit_spec,
                                                            const unsigned min_digits)
 {
@@ -48,6 +75,15 @@ static character_requirements_t compute_digit_requirements(uintmax_t value, cons
     return reqs;
 }
 
+/**
+ * Computes the character requirements (number of bytes and character units) for formatting an integer
+ * based on the provided specification.
+ *
+ * @param spec A pointer to the integer specification. This includes details for formatting such as digit,
+ *             sign, separator, padding specifications, and minimum digit count.
+ * @param value The integer value to compute character requirements for.
+ * @return A structure containing the total number of bytes and character units required to format the integer.
+ */
 static character_requirements_t compute_integer_requirements(const integer_spec_c8_t *const spec, const intmax_t value)
 {
     size_t len = 0;
@@ -82,8 +118,16 @@ static character_requirements_t compute_integer_requirements(const integer_spec_
     return (character_requirements_t){.bytes = len, .units = units};
 }
 
+/**
+ * Padding specification, which does not pad.
+ */
 static const padding_spec_c8_t PADDING_SPEC_NONE = {.padding_max = 0};
 
+/**
+ * Fill the integer specifications with default values if none are used.
+ *
+ * @param spec Pointer to the specification struct to fill out.
+ */
 static void integer_spec_fill_defaults(integer_spec_c8_t *spec)
 {
     if (!spec->padding_spec)
@@ -121,12 +165,28 @@ size_t format8_integer_length(const intmax_t value, integer_spec_c8_t spec)
     return requirements.bytes;
 }
 
+/**
+ * Write a string to the output on the left side, then return the remaining part of the destination string.
+ *
+ * @param output String to write to.
+ * @param str String to write.
+ * @return Remaining part of the string.
+ */
 static string8_t write_output_left(const string8_t output, const string8_t str)
 {
     memcpy(output.data, str.data, str.length);
     return string8_advance(output, str.length);
 }
 
+/**
+ * Write a string to the output on the left side `repeats` times, then return the remaining part of the destination
+ * string.
+ *
+ * @param output String to write to.
+ * @param repeats How times to repeat the writing.
+ * @param str String to write.
+ * @return Remaining part of the string.
+ */
 static string8_t write_output_left_n(string8_t output, const unsigned repeats, string8_t const str)
 {
     for (unsigned i = 0; i < repeats; ++i)
@@ -136,12 +196,28 @@ static string8_t write_output_left_n(string8_t output, const unsigned repeats, s
     return output;
 }
 
+/**
+ * Write a string to the output on the right side, then return the remaining part of the destination string.
+ *
+ * @param output String to write to.
+ * @param str String to write.
+ * @return Remaining part of the string.
+ */
 static string8_t write_output_right(const string8_t output, const string8_t str)
 {
     memcpy(output.data + output.length - str.length, str.data, str.length);
     return string8_shrink(output, str.length);
 }
 
+/**
+ * Write a string to the output on the right side `repeats` times, then return the remaining part of the destination
+ * string.
+ *
+ * @param output String to write to.
+ * @param repeats How times to repeat the writing.
+ * @param str String to write.
+ * @return Remaining part of the string.
+ */
 static string8_t write_output_right_n(string8_t output, const unsigned repeats, string8_t const str)
 {
     for (unsigned i = 0; i < repeats; ++i)
@@ -151,6 +227,15 @@ static string8_t write_output_right_n(string8_t output, const unsigned repeats, 
     return output;
 }
 
+/**
+ * Pad the string with a specified padding unit.
+ *
+ * @param p_output Pointer to the output string to pad.
+ * @param direction Padding direction.
+ * @param padding_unit What to use for padding.
+ * @param pads Number of padding units to write in total.
+ * @return CUTL_RESULT_FAILURE if the enum value was not correct.
+ */
 static cutl_result_t pad_output(string8_t *const p_output, const padding_direction_t direction,
                                 const string8_t padding_unit, const unsigned pads)
 {
@@ -192,6 +277,13 @@ static cutl_result_t pad_output(string8_t *const p_output, const padding_directi
     return CUTL_SUCCESS;
 }
 
+/**
+ * Write a sign to a string on the left side.
+ *
+ * @param p_output String to write to.
+ * @param sign Sign to write to the string.
+ * @param spec Specifications for the signs.
+ */
 static void write_sign_ltr(string8_t *const p_output, const number_sign_t sign, const sign_spec_c8_t *const spec)
 {
     switch (sign)
@@ -207,6 +299,13 @@ static void write_sign_ltr(string8_t *const p_output, const number_sign_t sign, 
     }
 }
 
+/**
+ * Write a sign to a string on the right side.
+ *
+ * @param p_output String to write to.
+ * @param sign Sign to write to the string.
+ * @param spec Specifications for the signs.
+ */
 static void write_sign_rtl(string8_t *const p_output, const number_sign_t sign, const sign_spec_c8_t *const spec)
 {
     switch (sign)
@@ -222,8 +321,20 @@ static void write_sign_rtl(string8_t *const p_output, const number_sign_t sign, 
     }
 }
 
-string8_t write_integer_with_separators_rtl(string8_t output, uintmax_t abs_value, const digit_spec_c8_t *digit_spec,
-                                            const separator_spec_c8_t *separator_spec, const unsigned minimum_digits)
+/**
+ * Write an integer value right-to-left.
+ *
+ * @param output String to write to.
+ * @param abs_value Absolute value of the integer to write.
+ * @param digit_spec Specifications of the digits.
+ * @param separator_spec Specifications of the separators.
+ * @param minimum_digits Minimum number of digits to be written, with zeros being added on the left if needed.
+ * @return Remainder of the string that was written to.
+ */
+static string8_t write_integer_with_separators_rtl(string8_t output, uintmax_t abs_value,
+                                                   const digit_spec_c8_t *digit_spec,
+                                                   const separator_spec_c8_t *separator_spec,
+                                                   const unsigned minimum_digits)
 {
     unsigned minor_separator_counter = 0, written_digits = 0;
     while (abs_value)
@@ -270,8 +381,20 @@ string8_t write_integer_with_separators_rtl(string8_t output, uintmax_t abs_valu
     return output;
 }
 
-string8_t write_integer_with_separators_ltr(string8_t output, uintmax_t abs_value, const digit_spec_c8_t *digit_spec,
-                                            const separator_spec_c8_t *separator_spec, const unsigned maximum_digits)
+/**
+ * Write an integer value left-to-right.
+ *
+ * @param output String to write to.
+ * @param abs_value Absolute value of the integer to write.
+ * @param digit_spec Specifications of the digits.
+ * @param separator_spec Specifications of the separators.
+ * @param minimum_digits Minimum number of digits to be written, with zeros being added on the right if needed.
+ * @return Remainder of the string that was written to.
+ */
+static string8_t write_integer_with_separators_ltr(string8_t output, uintmax_t abs_value,
+                                                   const digit_spec_c8_t *digit_spec,
+                                                   const separator_spec_c8_t *separator_spec,
+                                                   const unsigned minimum_digits)
 {
     // Find the number of digits in the abs value
     unsigned digit_count = 0;
@@ -282,7 +405,7 @@ string8_t write_integer_with_separators_ltr(string8_t output, uintmax_t abs_valu
         divisor *= base;
         digit_count += 1;
     }
-    CUTL_ASSERT(digit_count <= maximum_digits, "Digit count exceeds maximum_digits.");
+    CUTL_ASSERT(digit_count <= minimum_digits, "Digit count exceeds maximum_digits.");
 
     unsigned minor_separator_counter = 0;
 
@@ -300,7 +423,7 @@ string8_t write_integer_with_separators_ltr(string8_t output, uintmax_t abs_valu
         }
     }
 
-    auto const trailing_zeros = maximum_digits <= digit_count ? 0 : maximum_digits - digit_count;
+    auto const trailing_zeros = minimum_digits <= digit_count ? 0 : minimum_digits - digit_count;
     if (trailing_zeros != 0)
     {
         if (separator_spec->separator_distance == 0 ||
@@ -373,6 +496,11 @@ cutl_result_t format8_integer(const intmax_t value, string8_t output, integer_sp
     return CUTL_SUCCESS;
 }
 
+/**
+ * Fill the float specifications with default values if none are used.
+ *
+ * @param spec Pointer to the specification struct to fill out.
+ */
 static void float_spec_fill_defaults(float_spec_c8_t *spec)
 {
     if (!spec->separator_spec)
@@ -385,6 +513,9 @@ static void float_spec_fill_defaults(float_spec_c8_t *spec)
         spec->padding_spec = &PADDING_SPEC_NONE;
 }
 
+/**
+ * Type to store the parsed float as integer part, fraction part, and the sign of the float.
+ */
 typedef struct
 {
     uintmax_t integer_part;
@@ -392,6 +523,15 @@ typedef struct
     number_sign_t sign;
 } float_info_t;
 
+/**
+ * Computes the character requirements (number of bytes and character units) for formatting a float
+ * based on the provided specification.
+ *
+ * @param number Parsed float value.
+ * @param spec A pointer to the float specification. This includes details for formatting such as digit,
+ *             sign, separator, padding specifications, and minimum digit count.
+ * @return A structure containing the total number of bytes and character units required to format the float.
+ */
 static character_requirements_t compute_float_requirements(const float_info_t number, const float_spec_c8_t *const spec)
 {
     auto const integer_v = number.integer_part;
@@ -441,6 +581,15 @@ static character_requirements_t compute_float_requirements(const float_info_t nu
     return total_requirements;
 }
 
+/**
+ * Parse the floating point number into the integer part, fraction part, and sign to be written.
+ *
+ * @param value Value of the floating point number.
+ * @param base Base in which the number will be represented.
+ * @param fractional_digits Number of digits used for the fractional part.
+ * @param always_sign True if the sign should be displayed for a positive number as well.
+ * @return Parsed floating point number.
+ */
 static float_info_t parse_float(const double value, const unsigned base, const unsigned fractional_digits,
                                 const bool always_sign)
 {
@@ -541,12 +690,20 @@ cutl_result_t format8_float(const double value, string8_t output, float_spec_c8_
     return CUTL_SUCCESS;
 }
 
+/**
+ * Default exponent specifications.
+ */
 static const exponent_spec_c8_t EXPONENT_SPEC_DEFAULT = {
     .exponent_prefix = string8_from_literal(u8"E"),
     .exponent_suffix = (string8_t){},
     .use_separators = false,
 };
 
+/**
+ * Fill the exponential specifications with default values if none are used.
+ *
+ * @param spec Pointer to the specification struct to fill out.
+ */
 static void exponential_spec_fill_defaults(exponential_spec_c8_t *spec)
 {
     if (!spec->separator_spec)
@@ -561,17 +718,30 @@ static void exponential_spec_fill_defaults(exponential_spec_c8_t *spec)
         spec->exponent_spec = &EXPONENT_SPEC_DEFAULT;
 }
 
+/**
+ * Type used to store the information about the parsed exponential number.
+ */
 typedef struct
 {
-    uintmax_t integer_part;
-    uintmax_t fraction_part;
-    number_sign_t sign;
-    uintmax_t exponent;
-    number_sign_t exponent_sign;
+    uintmax_t integer_part;      // Integer part of the significant part
+    uintmax_t fraction_part;     // Fraction part of the significant part
+    number_sign_t sign;          // Sign of the number
+    uintmax_t exponent;          // Absolute value of the exponent
+    number_sign_t exponent_sign; // Sign of the exponent
 } exponential_info_t;
 
+/**
+ * Parse the floating point number into the exponential representation.
+ *
+ * @param value Value of the floating point number.
+ * @param base Base in which the number will be represented.
+ * @param digits_fraction Number of digits used for the fractional part.
+ * @param always_sign_value True if the sign should be displayed for a positive number as well.
+ * @param always_sign_exponent True if the sign should be displayed for a positive exponent as well.
+ * @return Parsed floating point number.
+ */
 static exponential_info_t parse_exponent(const double value, const unsigned base, const unsigned digits_fraction,
-                                         const bool always_sign_value, const bool always_exponent_sign)
+                                         const bool always_sign_value, const bool always_sign_exponent)
 {
     intmax_t exponent;
     double significant;
@@ -627,7 +797,7 @@ static exponential_info_t parse_exponent(const double value, const unsigned base
     else
     {
         exp_abs = exponent;
-        if (always_exponent_sign)
+        if (always_sign_exponent)
             exp_sign = SIGN_POSITIVE;
     }
 
@@ -640,6 +810,16 @@ static exponential_info_t parse_exponent(const double value, const unsigned base
     };
 }
 
+/**
+ * Computes the character requirements (number of bytes and character units) for formatting an exponential float
+ * based on the provided specification.
+ *
+ * @param number Parsed exponential float value.
+ * @param spec A pointer to the exponential specification. This includes details for formatting such as digit,
+ *             sign, separator, padding specifications, and minimum digit count.
+ * @return A structure containing the total number of bytes and character units required to format the exponential
+ * float.
+ */
 static character_requirements_t compute_exponential_requirements(const exponential_info_t number,
                                                                  const exponential_spec_c8_t *const spec)
 {

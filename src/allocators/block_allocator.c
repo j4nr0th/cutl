@@ -1,11 +1,19 @@
-
 #include "block_allocator.h"
 
 #include "allocator_internal.h"
 
+// TODO: use C23 bit utilities
+
 // Counters for blocks must come in units of `ALLOCATOR_MINIMUM_ALIGNMENT` bytes.
 auto constexpr blocks_per_counter_unit = ALLOCATOR_MINIMUM_ALIGNMENT * 8LLU;
 
+/**
+ * Compute the offset of the block's start in the allocator.
+ *
+ * @param this Allocator to use.
+ * @param block_idx Index of the block to get the offset for.
+ * @return Offset of the block's start from this->memory.
+ */
 static uintptr_t block_offset(const cutl_allocator_block_t *const this, const unsigned block_idx)
 {
     auto const offset_counters =
@@ -13,6 +21,13 @@ static uintptr_t block_offset(const cutl_allocator_block_t *const this, const un
     return offset_counters + (uintptr_t)block_idx * this->block_size;
 }
 
+/**
+ * Get the state of the block in the allocator.
+ *
+ * @param this Allocator to use.
+ * @param block_idx Index of the block to get the state for.
+ * @return If the block is in use, `true` is returned, and if it is free, `false` is returned.
+ */
 static bool block_get_state(const cutl_allocator_block_t *const this, const unsigned block_idx)
 {
     CUTL_ASSERT(block_idx < this->block_count, "Block index %u is out of bounds.", block_idx);
@@ -32,6 +47,13 @@ static bool block_get_state(const cutl_allocator_block_t *const this, const unsi
 //     }
 // }
 
+/**
+ * Set the block as used/free.
+ *
+ * @param this Allocator to use.
+ * @param block_idx Index of the block to set the state for.
+ * @param new_state The new state of the block (`true` for used and `false` for free).
+ */
 static void block_set_state(cutl_allocator_block_t *const this, const unsigned block_idx, const bool new_state)
 {
     CUTL_ASSERT(block_idx < this->block_count, "Block index %u is out of bounds.", block_idx);
@@ -92,6 +114,13 @@ cutl_result_t cutl_allocator_block_allocate(cutl_allocator_block_t *const this, 
     return CUTL_SUCCESS;
 }
 
+/**
+ * Convert the absolute address of a block from the block allocator to a relative offset.
+ *
+ * @param this Allocator to compute the offset relative to.
+ * @param memory Absolute memory address to convert to the relative offset.
+ * @return Offset of the block's start from this->memory or `~(uintptr_t)0` if the memory is not from the allocator.
+ */
 static uintptr_t address_to_offset(const cutl_allocator_block_t *const this, const void *const memory)
 {
     auto const address = (uintptr_t)memory;
