@@ -57,6 +57,6 @@ napoleon_attr_annotations = True
 
 # -- Options for C hawkmoth --------------------------------------------------
 # https://hawkmoth.readthedocs.io/en/stable/extension.html#configuration
-hawkmoth_root = (Path(__file__).parent.parent.parent / "src").absolute()
+hawkmoth_root = (Path(__file__).parent.parent.parent / "include" / "cutl").absolute()
 hawkmoth_transform_default = "javadoc"
 hawkmoth_clang = ["--std=c23"]

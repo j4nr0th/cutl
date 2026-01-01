@@ -1,4 +1,4 @@
 Permutation Iterator
 ====================
 
-.. c:autodoc:: iterators/permutations.h
+.. c:autodoc:: iterators/permutation_iterator.h

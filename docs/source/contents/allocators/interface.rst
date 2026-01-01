@@ -1,4 +1,4 @@
 Allocator Interface
 ===================
 
-.. c:autodoc:: allocators/allocators.h
+.. c:autodoc:: allocators.h

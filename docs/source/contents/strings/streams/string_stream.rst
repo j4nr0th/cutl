@@ -1,4 +1,4 @@
 String Stream
 =============
 
-.. c:autodoc:: string/string_stream.h
+.. c:autodoc:: streams/string_stream.h

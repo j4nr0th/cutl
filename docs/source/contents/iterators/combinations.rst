@@ -1,4 +1,4 @@
 Combination Iterator
 ====================
 
-.. c:autodoc:: iterators/combinations.h
+.. c:autodoc:: iterators/combination_iterator.h

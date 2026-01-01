@@ -1,4 +1,4 @@
 String Formatting
 =================
 
-.. c:autodoc:: string/format8.h
+.. c:autodoc:: format.h

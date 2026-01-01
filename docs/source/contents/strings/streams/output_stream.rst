@@ -1,4 +1,4 @@
 Output Stream
 =============
 
-.. c:autodoc:: string/output_stream.h
+.. c:autodoc:: streams/output_stream.h
