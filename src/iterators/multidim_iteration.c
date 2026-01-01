@@ -1,5 +1,10 @@
+#include "../../include/cutl/iterators/multidim_iteration.h"
 
-#include "multidim_iteration.h"
+struct multidim_iterator_t
+{
+    size_t ndims;
+    size_t dims_and_offsets[];
+};
 
 static inline size_t *multidim_iterator_dims_ptr(multidim_iterator_t *this)
 {

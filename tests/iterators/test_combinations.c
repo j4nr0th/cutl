@@ -1,4 +1,4 @@
-#include "../../src/iterators/combinations.h"
+#include <cutl/iterators/combination_iterator.h>
 #include "../common/common.h"
 
 #include <stddef.h>

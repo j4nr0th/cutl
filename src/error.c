@@ -1,5 +1,5 @@
-#include "error.h"
-#include "string/string8.h"
+#include "../include/cutl/error.h"
+#include "../include/cutl/strings.h"
 
 string8_t cutl_result_to_string8(const cutl_result_t result)
 {

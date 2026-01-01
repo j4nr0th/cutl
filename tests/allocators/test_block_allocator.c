@@ -1,4 +1,4 @@
-#include "../../src/allocators/block_allocator.h"
+#include <cutl/allocators/block_allocator.h>
 #include "allocator_common_test.h"
 #include <time.h>
 
@@ -51,7 +51,7 @@ int main(const int argc, const char *CUTL_ARRAY_ARG(argv, const static argc))
     TEST_ASSERTION(end_ptr != argv[1], "Parameter was not a positive integer.");
     TEST_ASSERTION(cnt > 0, "Parameter was not a positive integer.");
 
-    auto const total_required_memory = 2 * cnt * (ALLOCATION_MAX_SIZE + 32 + 16) + sizeof(cutl_allocator_block_t);
+    auto const total_required_memory = 2 * cnt * (ALLOCATION_MAX_SIZE + 32 + 16) + 40;
 
     unsigned char *const memory = malloc(total_required_memory);
     TEST_ASSERTION(memory != nullptr, "Failed to allocate memory.");

@@ -1,7 +1,15 @@
-#include "output_stream.h"
+#include "../../include/cutl/streams/format_streams.h"
 
-#include "format_defaults.h"
+#include "../../include/cutl/format_defaults.h"
 #include <errno.h>
+
+struct output_stream_t
+{
+    FILE *stream;
+    size_t buffer_size;
+    size_t buffer_pos;
+    char8_t buffer[];
+};
 
 cutl_result_t output_stream_init(FILE *const stream, const size_t size, unsigned char CUTL_ARRAY_ARG(memory, size),
                                  output_stream_t **const p_out)
