@@ -1,6 +1,6 @@
-#include "permutations.h"
+#include "../../include/cutl/iterators/permutation_iterator.h"
 
-#include "../common_defs.h"
+#include "../../include/cutl/common_defs.h"
 
 struct permutation_iterator_t
 {

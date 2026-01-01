@@ -1,4 +1,4 @@
-#include "../../src/iterators/permutations.h"
+#include  <cutl/iterators/permutation_iterator.h>
 #include "../common/common.h"
 
 #include <stddef.h>

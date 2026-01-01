@@ -1,6 +1,6 @@
-#include "combinations.h"
+#include "../../include/cutl/iterators/combination_iterator.h"
 
-#include "../common_defs.h"
+#include "../../include/cutl/common_defs.h"
 
 struct combination_iterator_t
 {

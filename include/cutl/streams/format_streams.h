@@ -1,6 +1,8 @@
 #pragma once
 
-#include "format8.h"
+#include "../format.h"
+#include "string_stream.h"
+#include "output_stream.h"
 
 /**
  * Enum specifying the type of the format argument.
@@ -15,16 +17,6 @@ typedef enum
     FMT_S8,      // string8_t.
     FMT_CUSTOM,  // Custom length and print functions are provided.
 } fmt_type_t;
-
-/**
- * Function that returns the size of the buffer needed to format the custom value.
- */
-typedef size_t (*format_length_function)(void *param);
-
-/**
- * Function that formats the custom value to the buffer, which was previously sized.
- */
-typedef int (*format_write_function)(void *param, size_t size, char8_t CUTL_ARRAY_ARG(buffer, size));
 
 /**
  * Type used to pass arguments for formatting streams.
@@ -58,3 +50,27 @@ typedef struct
         } custom; // FMT_CUSTOM
     };
 } fmt_arg_t;
+
+/**
+ * Format multiple values into the output stream.
+ *
+ * If failure in formatting occurs during formatting, previous values are still written to the stream.
+ *
+ * @param this Output stream which to write the format to.
+ * @param args Format specifications.
+ * @return CUTL_SUCCESS if successful, otherwise an error code.
+ */
+cutl_result_t output_stream_format(output_stream_t *this, const fmt_arg_t args[]);
+
+
+/**
+ * Format multiple values into the string stream.
+ *
+ * If failure in formatting occurs during formatting, previous values are still written to the stream.
+ *
+ * @param this String stream which to write the format to.
+ * @param args Format specifications.
+ * @return CUTL_SUCCESS if successful, otherwise an error code.
+ */
+cutl_result_t string_stream_format(string_stream_t *this, const fmt_arg_t args[]);
+

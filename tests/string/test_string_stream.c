@@ -1,4 +1,4 @@
-#include "../../src/string/string_stream.h"
+#include <cutl/streams/format_streams.h>
 #include "../common/common.h"
 
 int main()

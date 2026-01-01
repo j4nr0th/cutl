@@ -1,4 +1,4 @@
-#include "../../src/iterators/multidim_iteration.h"
+#include <cutl/iterators/multidim_iteration.h>
 #include "../common/common.h"
 
 int main(const int argc, const char *argv[argc])

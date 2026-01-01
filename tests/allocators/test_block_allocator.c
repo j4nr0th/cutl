@@ -1,4 +1,4 @@
-#include "../../src/allocators/block_allocator.h"
+#include <cutl/allocators/block_allocator.h>
 #include "allocator_common_test.h"
 #include <time.h>
 

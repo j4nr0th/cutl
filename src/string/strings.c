@@ -1,6 +1,6 @@
-#include "string8.h"
+#include "../../include/cutl/strings.h"
 
-#include "../common_defs.h"
+#include "../../include/cutl/common_defs.h"
 
 #include <stdatomic.h>
 

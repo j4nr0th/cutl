@@ -1,6 +1,6 @@
 #pragma once
+#include "../allocators.h"
 #include "../error.h"
-#include "allocators.h"
 
 #include <stddef.h>
 #include <stdint.h>

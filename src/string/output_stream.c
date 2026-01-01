@@ -1,6 +1,6 @@
-#include "output_stream.h"
+#include "../../include/cutl/streams/format_streams.h"
 
-#include "format_defaults.h"
+#include "../../include/cutl/format_defaults.h"
 #include <errno.h>
 
 struct output_stream_t

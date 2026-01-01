@@ -1,4 +1,4 @@
-#include "../../src/allocators/stack_allocator.h"
+#include <cutl/allocators/stack_allocator.h>
 #include "allocator_common_test.h"
 #include <time.h>
 

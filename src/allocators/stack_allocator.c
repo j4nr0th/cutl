@@ -1,4 +1,4 @@
-#include "stack_allocator.h"
+#include "../../include/cutl/allocators/stack_allocator.h"
 #include "allocator_internal.h"
 
 struct cutl_allocator_stack_t

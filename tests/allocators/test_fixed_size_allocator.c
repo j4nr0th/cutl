@@ -1,4 +1,4 @@
-#include "../../src/allocators/fixed_size_allocator.h"
+#include <cutl/allocators/fixed_size_allocator.h>
 #include "allocator_common_test.h"
 #include <time.h>
 

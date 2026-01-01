@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../src/common_defs.h"
+#include <cutl/common_defs.h>
 #include <math.h>
 
 #ifdef GCC_DETECTED

@@ -2,7 +2,9 @@
 
 #include "../common_defs.h"
 #include "../error.h"
-#include "format_streams.h"
+#include "../strings.h"
+#include "../format.h"
+#include "_stream_common.h"
 #include <stdio.h>
 
 /**
@@ -87,17 +89,6 @@ cutl_result_t string_stream_write_custom(string_stream_t *this, format_length_fu
  * @return String currently written to the stream thus far.
  */
 string8_t string_stream_get_string(string_stream_t *this);
-
-/**
- * Format multiple values into the string stream.
- *
- * If failure in formatting occurs during formatting, previous values are still written to the stream.
- *
- * @param this String stream which to write the format to.
- * @param args Format specifications.
- * @return CUTL_SUCCESS if successful, otherwise an error code.
- */
-cutl_result_t string_stream_format(string_stream_t *this, const fmt_arg_t args[]);
 
 /**
  * Clear the current state of the string stream, resetting it to an empty string.

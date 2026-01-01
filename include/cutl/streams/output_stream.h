@@ -4,7 +4,9 @@
 
 #include "../common_defs.h"
 #include "../error.h"
-#include "format_streams.h"
+#include "../format.h"
+#include "../strings.h"
+#include "_stream_common.h"
 
 /**
  * Stream which uses (buffered) writing to a file stream.
@@ -93,13 +95,3 @@ cutl_result_t output_stream_write_exponential(output_stream_t *this, double valu
 cutl_result_t output_stream_write_custom(output_stream_t *this, format_length_function length_function,
                                          format_write_function write_function, void *param);
 
-/**
- * Format multiple values into the output stream.
- *
- * If failure in formatting occurs during formatting, previous values are still written to the stream.
- *
- * @param this Output stream which to write the format to.
- * @param args Format specifications.
- * @return CUTL_SUCCESS if successful, otherwise an error code.
- */
-cutl_result_t output_stream_format(output_stream_t *this, const fmt_arg_t args[]);

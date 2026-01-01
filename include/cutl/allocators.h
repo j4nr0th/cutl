@@ -1,5 +1,5 @@
 #pragma once
-#include "../common_defs.h"
+#include "common_defs.h"
 #include <stddef.h>
 
 /**

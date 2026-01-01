@@ -1,5 +1,5 @@
-#include "string_stream.h"
-#include "format_defaults.h"
+#include "../../include/cutl/streams/format_streams.h"
+#include "../../include/cutl/format_defaults.h"
 
 struct string_stream_t
 {

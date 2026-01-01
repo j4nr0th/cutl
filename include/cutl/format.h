@@ -1,5 +1,5 @@
 #pragma once
-#include "string8.h"
+#include "strings.h"
 
 /**
  * Specification of how digits of a number are formatted.

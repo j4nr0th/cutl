@@ -1,4 +1,4 @@
-#include "multidim_iteration.h"
+#include "../../include/cutl/iterators/multidim_iteration.h"
 
 struct multidim_iterator_t
 {
