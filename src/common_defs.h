@@ -19,7 +19,7 @@
 #    define CUTL_ASSUME(x) (void)(0)
 #endif
 
-// Assert used to either validate assumptions at runtime, or otherwise specify them at compile time.
+// Assert used to either validate assumptions at runtime or otherwise specify them at compile time.
 #ifdef CUTL_ENABLE_ASSERTS
 #    include <stdio.h>
 #    include <stdlib.h>

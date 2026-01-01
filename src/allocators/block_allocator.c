@@ -1,8 +1,6 @@
 #include "block_allocator.h"
-
 #include "allocator_internal.h"
-
-// TODO: use C23 bit utilities
+#include <stdbit.h>
 
 // Counters for blocks must come in units of `ALLOCATOR_MINIMUM_ALIGNMENT` bytes.
 auto constexpr blocks_per_counter_unit = ALLOCATOR_MINIMUM_ALIGNMENT * 8LLU;
@@ -86,14 +84,17 @@ cutl_result_t cutl_allocator_block_allocate(cutl_allocator_block_t *const this, 
 
         // We can grab the lowest free one
         block_idx = i * 8;
-        // Get the lowest free bit in isolation
-        auto lowest_byte = (~group_state & ~(~group_state - 1));
-        // While the lowest bit is still there, we shift down
-        while (lowest_byte > 1)
-        {
-            block_idx += 1;
-            lowest_byte >>= 1;
-        }
+        auto const first_trailing_zero = stdc_first_trailing_zero_uc(group_state) - 1;
+        CUTL_ASSUME(first_trailing_zero < 8 * sizeof(group_state));
+        block_idx += first_trailing_zero;
+        // // Get the lowest free bit in isolation
+        // auto lowest_byte = (~group_state & ~(~group_state - 1));
+        // // While the lowest bit is still there, we shift down
+        // while (lowest_byte > 1)
+        // {
+        //     block_idx += 1;
+        //     lowest_byte >>= 1;
+        // }
         break;
     }
     // We did not find a free block
