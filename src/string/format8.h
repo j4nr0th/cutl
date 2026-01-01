@@ -10,12 +10,18 @@ typedef struct
     const string8_t *digits; // Individual digits in increasing value.
 } digit_spec_c8_t;
 
+/**
+ * Specification of positive and negative signs are formatted.
+ */
 typedef struct
 {
     string8_t plus;  // Sign to use for "+"
     string8_t minus; // Sign to use for "-"
 } sign_spec_c8_t;
 
+/**
+ * Specification of minor and major separators are formatted.
+ */
 typedef struct
 {
     string8_t minor_separator;   // Serves the purpose of thousands separators and appears every `separator_distance`
@@ -23,6 +29,9 @@ typedef struct
     unsigned separator_distance; // How ofter to place the minor separators.
 } separator_spec_c8_t;
 
+/**
+ * Specification of what direction the padding is added.
+ */
 typedef enum
 {
     PADDING_LEFT,   // Pad on the left only
@@ -31,6 +40,9 @@ typedef enum
     PADDING_BOTH_R, // Pad on both sides, with preference for right
 } padding_direction_t;
 
+/**
+ * Specification of how to pad the resulting string.
+ */
 typedef struct
 {
     string8_t padding;             // What to pad the digits with

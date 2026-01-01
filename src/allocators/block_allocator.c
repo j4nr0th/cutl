@@ -2,6 +2,14 @@
 #include "allocator_internal.h"
 #include <stdbit.h>
 
+struct cutl_allocator_block_t
+{
+    cutl_allocator_t base;                       // Allocator interface
+    unsigned block_size;                         // Size of individual blocks
+    unsigned block_count;                        // Number of blocks in the allocator
+    alignas(max_align_t) unsigned char memory[]; // Memory used to back the allocations and store the block states
+};
+
 // Counters for blocks must come in units of `ALLOCATOR_MINIMUM_ALIGNMENT` bytes.
 auto constexpr blocks_per_counter_unit = ALLOCATOR_MINIMUM_ALIGNMENT * 8LLU;
 

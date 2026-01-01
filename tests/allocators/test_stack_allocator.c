@@ -55,7 +55,7 @@ int main(const int argc, const char *CUTL_ARRAY_ARG(argv, const static argc))
     TEST_ASSERTION(end_ptr != argv[1], "Parameter was not a positive integer.");
     TEST_ASSERTION(cnt > 0, "Parameter was not a positive integer.");
 
-    auto const total_required_memory = cnt * 2 * (ALLOCATION_MAX_SIZE + 48) + sizeof(cutl_allocator_stack_t);
+    auto const total_required_memory = cnt * 2 * (ALLOCATION_MAX_SIZE + 48) + 48;
 
     unsigned char *const memory = malloc(total_required_memory);
     TEST_ASSERTION(memory != nullptr, "Failed to allocate memory.");

@@ -1,6 +1,11 @@
 #pragma once
 #include "../common_defs.h"
+#include <stddef.h>
 
+/**
+ * Interface for all other allocator functions. It contains the callback functions to call in order to make
+ * allocations, along with a state pointer that is passed to all of these.
+ */
 typedef struct
 {
     void *state;

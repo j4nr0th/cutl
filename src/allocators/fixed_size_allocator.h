@@ -3,7 +3,8 @@
 #include "allocator_internal.h"
 #include "allocators.h"
 
-/* Allocator with a fixed memory pool
+/**
+ * Allocator with a fixed memory pool
  *
  * It uses its memory pool to store block information and for backing made allocations.
  * The memory block array grows from the low to high addresses (from start towards the end),
@@ -17,15 +18,7 @@
  * end of the array. They are unsorted, except the left-most block, which starts after the array of the info array,
  * always being at the end of the array.
  */
-typedef struct
-{
-    cutl_allocator_t base;
-    size_t free_blocks; // Number of free blocks. These are stored after the used blocks.
-    size_t block_count; // Total allocation count.
-    size_t total_size;  // Total size of the allocator.
-    alignas(
-        max_align_t) unsigned char memory[]; // Memory which includes allocations, as well as the block array at the end
-} cutl_allocator_fs_t;
+typedef struct cutl_allocator_fs_t cutl_allocator_fs_t;
 
 /** Create a fixed-size new allocator within the provided array.
  *

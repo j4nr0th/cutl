@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../src/common_defs.h"
 #include <math.h>
 
-#ifdef __GNUC__
+#ifdef GCC_DETECTED
 __attribute__((format(printf, 5, 6))) __attribute__((noreturn))
 #endif
 static void failed_assertion(const char *file, const int line, const char *function, const char *expr, const char *msg,
@@ -18,7 +19,7 @@ static void failed_assertion(const char *file, const int line, const char *funct
     va_end(args);
     fprintf(stderr, "%s:%d - %s (Assertion failed: %s): %s\n", file, line, function, expr, buffer);
 #ifdef __GNUC__
-    __builtin_trap();
+    CUTL_DEBUG_BREAK;
 #endif
 
     exit(EXIT_FAILURE);
@@ -30,7 +31,6 @@ static void failed_assertion(const char *file, const int line, const char *funct
 #define TEST_CUTL_RESULT(res, expr, v)                                                                                 \
     TEST_ASSERTION((res = (expr)) == (v), "\"%s\" failed with an error: : (%s) - %s.", #expr,                          \
                    cutl_result_to_string(res), cutl_result_message(res))
-
 
 static void test_numbers_close(const char *file, const int line, const char *function, const double x, const double y,
                                const double atol, const double rtol)

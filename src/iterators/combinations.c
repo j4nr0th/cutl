@@ -2,6 +2,13 @@
 
 #include "../common_defs.h"
 
+struct combination_iterator_t
+{
+    uint8_t n;
+    uint8_t r;
+    uint8_t counters[];
+};
+
 size_t combination_iterator_required_memory(const uint8_t r)
 {
     return sizeof(combination_iterator_t) + r * sizeof(uint8_t);

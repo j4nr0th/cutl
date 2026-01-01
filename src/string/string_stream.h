@@ -8,12 +8,7 @@
 /**
  * Stream which writes to an internal buffer.
  */
-typedef struct
-{
-    size_t buffer_size;
-    size_t buffer_pos;
-    char8_t buffer[];
-} string_stream_t;
+typedef struct string_stream_t string_stream_t;
 
 /**
  * Create a new string stream in the allocated memory region.

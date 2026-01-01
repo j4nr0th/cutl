@@ -9,13 +9,8 @@
 /**
  * Stream which uses (buffered) writing to a file stream.
  */
-typedef struct
-{
-    FILE *stream;
-    size_t buffer_size;
-    size_t buffer_pos;
-    char8_t buffer[];
-} output_stream_t;
+typedef struct output_stream_t output_stream_t;
+
 
 /**
  * Create a new output file stream in the allocated memory region.

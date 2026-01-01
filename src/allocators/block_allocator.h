@@ -7,13 +7,7 @@
 /**
  * Allocator which allocates memory in blocks of fixed size.
  */
-typedef struct
-{
-    cutl_allocator_t base;                       // Allocator interface
-    unsigned block_size;                         // Size of individual blocks
-    unsigned block_count;                        // Number of blocks in the allocator
-    alignas(max_align_t) unsigned char memory[]; // Memory used to back the allocations and store the block states
-} cutl_allocator_block_t;
+typedef struct cutl_allocator_block_t cutl_allocator_block_t;
 
 /**
  * Create a block allocator, which only allocates blocks of fixed size.

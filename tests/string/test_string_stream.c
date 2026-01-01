@@ -18,7 +18,7 @@ int main()
     TEST_CUTL_RESULT(res, string_stream_init(TEST_BUFFER_SIZE, buffer, &ss), CUTL_SUCCESS);
 
     // Fail when we try to write out of bounds
-    TEST_CUTL_RESULT(res, string_stream_write_s8(ss, (string8_t){.data = nullptr, .length = ss->buffer_size + 1}),
+    TEST_CUTL_RESULT(res, string_stream_write_s8(ss, (string8_t){.data = nullptr, .length = TEST_BUFFER_SIZE}),
                      CUTL_RESULT_INSUFFICIENT_BUFFER);
 
     // Try and compose a formatted string

@@ -1,6 +1,13 @@
 #include "string_stream.h"
 #include "format_defaults.h"
 
+struct string_stream_t
+{
+    size_t buffer_size;
+    size_t buffer_pos;
+    char8_t buffer[];
+};
+
 cutl_result_t string_stream_init(const size_t size, unsigned char CUTL_ARRAY_ARG(memory, size),
                                  string_stream_t **const p_out)
 {

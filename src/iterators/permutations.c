@@ -2,6 +2,13 @@
 
 #include "../common_defs.h"
 
+struct permutation_iterator_t
+{
+    const uint8_t n;
+    const uint8_t r;
+    uint8_t _data[];
+};
+
 size_t permutation_iterator_required_memory(const uint8_t n, const uint8_t r)
 {
     return (size_t)(n + 2 * r) * sizeof(*((permutation_iterator_t *)0xB00000B5)->_data) +
@@ -118,21 +125,6 @@ void permutation_iterator_next(permutation_iterator_t *const this)
 
     // We're done, make the iterator to the finished state
     cycles[0] = 0;
-}
-
-int permutation_iterator_run_callback(permutation_iterator_t *this, void *ptr,
-                                      int (*callback)(const uint8_t *permutation, void *ptr))
-{
-    while (!permutation_iterator_is_done(this))
-    {
-        int ret;
-        if ((ret = callback(perm_value_ptr_const(this), ptr)))
-        {
-            return ret;
-        }
-        permutation_iterator_next(this);
-    }
-    return 0;
 }
 
 int permutation_iterator_current_sign(const permutation_iterator_t *this)

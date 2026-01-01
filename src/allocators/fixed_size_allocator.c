@@ -1,6 +1,16 @@
 #include "fixed_size_allocator.h"
 #include "allocator_internal.h"
 
+struct cutl_allocator_fs_t
+{
+    cutl_allocator_t base; // Allocator interface
+    size_t free_blocks;    // Number of free blocks. These are stored after the used blocks.
+    size_t block_count;    // Total allocation count.
+    size_t total_size;     // Total size of the allocator.
+    alignas(
+        max_align_t) unsigned char memory[]; // Memory which includes allocations, as well as the block array at the end
+};
+
 typedef struct
 {
     size_t offset;

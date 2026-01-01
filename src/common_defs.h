@@ -1,10 +1,21 @@
 #pragma once
 
+// Check if we have the real GCC
+#if defined(__GNUC__) && !defined(__clang__)
+#    define GCC_DETECTED
+#endif
+
 // GCC definitions for parts of other macros
-#ifdef __GNUC__
+#ifdef GCC_DETECTED
 #    define CUTL_ARRAY_ARG(array, attrib) array[attrib]
 #    define CUTL_DEBUG_BREAK __builtin_trap()
 #    define CUTL_ASSUME(x) __attribute__((assume(!(!(x)))))
+#endif
+
+#ifdef __clang__
+#    define CUTL_ARRAY_ARG(array, attrib) array[attrib]
+#    define CUTL_DEBUG_BREAK __builtin_debugtrap()
+#    define CUTL_ASSUME(x) __builtin_assume(!(!(x)))
 #endif
 
 // Fallback definitions

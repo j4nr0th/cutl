@@ -1,11 +1,16 @@
 #pragma once
 #include "../common_defs.h"
 #include <stddef.h>
-typedef struct
-{
-    size_t ndims;
-    size_t dims_and_offsets[];
-} multidim_iterator_t;
+
+/**
+ * Multidimensional iteration is handled by :c:type:`multidim_iterator_t`. After the number of dimensions
+ * is defined, it is possible to iterate by incrementing the counter in any of the dimensions. When the
+ * counter reaches the size of the dimension, it is reset and the preceding dimension is advanced. When
+ * the first dimension counter reaches the size of the dimension, the iterator is considered finished.
+ * Iterations can also be done in the reverse direction.
+ */
+typedef struct multidim_iterator_t multidim_iterator_t;
+
 
 /**
  * Calculates the amount of memory needed to store a multidim_iterator_t structure

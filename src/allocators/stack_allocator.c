@@ -1,6 +1,14 @@
 #include "stack_allocator.h"
 #include "allocator_internal.h"
 
+struct cutl_allocator_stack_t
+{
+    cutl_allocator_t base;
+    size_t top;                                // Top of the stack
+    size_t size;                               // Total size of the stack
+    alignas(max_align_t) unsigned char data[]; // Remaining memory
+};
+
 typedef struct
 {
     size_t size;                // Size of the allocation
