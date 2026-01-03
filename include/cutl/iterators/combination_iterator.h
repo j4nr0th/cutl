@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common_defs.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -68,3 +69,13 @@ void combination_iterator_next(combination_iterator_t *this);
  * @return Total number of combinations for the allocator.
  */
 unsigned combination_iterator_total_count(const combination_iterator_t *this);
+
+/**
+ * Get the index at which the specified iteration would appear.
+ *
+ * @param n Number of elements that the selection can be made from.
+ * @param r Number of elements taken per selection.
+ * @param vals Selection of the combination to get the index for
+ * @return Index of the combination.
+ */
+size_t combination_get_index(unsigned n, unsigned r, const uint8_t CUTL_ARRAY_ARG(vals, static r));
