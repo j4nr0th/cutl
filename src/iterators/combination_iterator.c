@@ -87,7 +87,7 @@ unsigned combination_iterator_total_count(const combination_iterator_t *this)
     return calculate_combination_count(this->n, this->r);
 }
 
-size_t combination_get_index(const unsigned n, const unsigned r, const uint8_t CUTL_ARRAY_ARG(vals, const static r))
+unsigned combination_get_index(const unsigned n, const unsigned r, const uint8_t CUTL_ARRAY_ARG(vals, const static r))
 {
     // Check that N and R are sensible
     CUTL_ASSERT(n >= r, "Number of elements must be greater than or equal to the number of elements per permutation.");
@@ -103,7 +103,7 @@ size_t combination_get_index(const unsigned n, const unsigned r, const uint8_t C
     }
 
     // Recursive combination counter rewritten into loop
-    size_t index = 0;
+    unsigned index = 0;
     for (unsigned i = 0, // Position in the combination array
          min_v = 0;      // Minimal value the current counter could take
          i < r; ++i)
@@ -111,7 +111,7 @@ size_t combination_get_index(const unsigned n, const unsigned r, const uint8_t C
         // Get the current counter
         auto const ci = vals[i];
         // Start the counter for the current contribution
-        size_t p = 0;
+        unsigned p = 0;
         for (unsigned j = min_v; j < ci; ++j)
         {
             p += calculate_combination_count(n - 1 - j, r - 1 - i);
@@ -123,4 +123,78 @@ size_t combination_get_index(const unsigned n, const unsigned r, const uint8_t C
     }
 
     return index;
+}
+signed combination_get_index_difference(const unsigned n, const unsigned r,
+                                        const uint8_t CUTL_ARRAY_ARG(vals_1, static r),
+                                        const uint8_t CUTL_ARRAY_ARG(vals_2, static r))
+{
+
+    // Check that N and R are sensible
+    CUTL_ASSERT(n >= r, "Number of elements must be greater than or equal to the number of elements per permutation.");
+    // Check indices are not out of bounds
+    for (unsigned i = 0; i < r; ++i)
+    {
+        CUTL_ASSERT(vals_1[i] < n, "Values must be less than N.");
+        CUTL_ASSERT(vals_2[i] < n, "Values must be less than N.");
+    }
+    // Check values are sorted
+    for (unsigned i = 1; i < r; ++i)
+    {
+        CUTL_ASSERT(vals_1[i] > vals_1[i - 1], "Values must be in ascending order.");
+        CUTL_ASSERT(vals_2[i] > vals_2[i - 1], "Values must be in ascending order.");
+    }
+
+    const uint8_t *first, *second;
+    bool negate;
+    unsigned matching = 0;
+    for (unsigned i = 0; i < r; ++i)
+    {
+        auto const v1 = vals_1[i];
+        auto const v2 = vals_2[i];
+        if (v1 < v2)
+        {
+            first = vals_1;
+            second = vals_2;
+            negate = false;
+            break;
+        }
+        if (v2 < v1)
+        {
+            first = vals_2;
+            second = vals_1;
+            negate = true;
+            break;
+        }
+        matching += 1;
+    }
+    // They are the same
+    if (matching == r)
+        return 0;
+
+    // We know which is the first and which is the second.
+    // Recursive combination counter rewritten into loop
+    signed dif = 0;
+    for (unsigned i = matching,    // Position in the combination array
+         min_v_1 = 0, min_v_2 = 0; // Minimal value the current counter could take
+         i < r; ++i)
+    {
+        auto const c1 = first[i];
+        auto const c2 = second[i];
+        signed dp = 0;
+
+        for (unsigned j = min_v_2; j < c2; ++j)
+        {
+            dp += (signed)calculate_combination_count(n - 1 - j, r - 1 - i);
+        }
+        for (unsigned j = min_v_1; j < c1; ++j)
+        {
+            dp -= (signed)calculate_combination_count(n - 1 - j, r - 1 - i);
+        }
+
+        dif += dp;
+        min_v_1 = c1 + 1;
+        min_v_2 = c2 + 1;
+    }
+
+    return negate ? -dif : dif;
 }

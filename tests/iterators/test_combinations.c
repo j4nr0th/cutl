@@ -70,6 +70,21 @@ static void test_combinations(const uint8_t n, const uint8_t r)
         combination_iterator_next(p);
     }
 
+    for (unsigned i = 0; i < cnt; ++i)
+    {
+        auto const offset_1 = (size_t)i * r;
+        for (unsigned j = 0; j < cnt; ++j)
+        {
+            auto const offset_2 = (size_t)j * r;
+            auto const computed_difference = combination_get_index_difference(n, r, previous_combinations + offset_1,
+                                                                              previous_combinations + offset_2);
+            auto const real_difference = (signed)j - (signed)i;
+            CUTL_ASSERT(computed_difference == real_difference,
+                        "Difference between indices %u and %u is incorrect (computed %d instead of %d).", i, j,
+                        computed_difference, real_difference);
+        }
+    }
+
     TEST_ASSERTION(cnt == total_combinations, "Wrong number of combinations generated (expected %u, but only got %u).",
                    total_combinations, cnt);
 
