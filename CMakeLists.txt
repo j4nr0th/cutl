@@ -43,4 +43,5 @@ target_include_directories(cutl INTERFACE ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(cutl PUBLIC CUTL_ENABLE_ASSERTS)
 target_compile_options(cutl PRIVATE -Wall -Wextra)
 
+enable_testing()
 add_subdirectory(tests)
