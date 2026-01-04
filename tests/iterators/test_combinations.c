@@ -1,18 +1,18 @@
-#include <cutl/iterators/combination_iterator.h>
 #include "../common/common.h"
+#include <cutl/iterators/combination_iterator.h>
 
 #include <stddef.h>
 #include <string.h>
 
 // static void print_combination(const combination_iterator_t *p)
 // {
-//     const unsigned char *const val = combination_iterator_current(p);
+//     const uint8_t *const val = combination_iterator_current(p);
 //     printf("%hhd", val[0]);
 //     for (unsigned i = 1; i < p->r; ++i)
 //         printf(" %hhd", val[i]);
 // }
 
-static int are_combinations_equal(const unsigned r, const unsigned char a[static r], const unsigned char b[static r])
+static int are_combinations_equal(const unsigned r, const uint8_t a[static r], const uint8_t b[static r])
 {
     unsigned matching_count = 0;
 
@@ -25,7 +25,7 @@ static int are_combinations_equal(const unsigned r, const unsigned char a[static
     return matching_count >= r;
 }
 
-static void test_combinations(const unsigned char n, const unsigned char r)
+static void test_combinations(const uint8_t n, const uint8_t r)
 {
     printf("Testing n: %u r: %u\n", (unsigned)n, (unsigned)r);
     TEST_ASSERTION(n >= r,
@@ -35,12 +35,18 @@ static void test_combinations(const unsigned char n, const unsigned char r)
     combination_iterator_init(p, n, r);
     const unsigned total_combinations = combination_iterator_total_count(p);
     unsigned cnt = 0;
-    unsigned char *const previous_combinations = malloc((size_t)r * total_combinations);
+    uint8_t *const previous_combinations = malloc((size_t)r * total_combinations);
     TEST_ASSERTION(previous_combinations, "Failed to allocate memory for previous combinations.");
+    size_t idx = 0;
     while (!combination_iterator_is_done(p))
     {
         // Copy the current iteration to the buffer
-        const unsigned char *const current_combination = combination_iterator_current(p);
+        const uint8_t *const current_combination = combination_iterator_current(p);
+        const size_t computed_idx = combination_get_index(n, r, current_combination);
+        TEST_ASSERTION(idx == computed_idx, "Combination index is incorrect (computed %zu when expecting %zu).",
+                       computed_idx, idx);
+        idx += 1;
+
         memcpy(previous_combinations + (size_t)cnt * r, current_combination, r);
         for (unsigned i = 0; i < r; ++i)
         {
@@ -62,6 +68,21 @@ static void test_combinations(const unsigned char n, const unsigned char r)
 
         cnt += 1;
         combination_iterator_next(p);
+    }
+
+    for (unsigned i = 0; i < cnt; ++i)
+    {
+        auto const offset_1 = (size_t)i * r;
+        for (unsigned j = 0; j < cnt; ++j)
+        {
+            auto const offset_2 = (size_t)j * r;
+            auto const computed_difference = combination_get_index_difference(n, r, previous_combinations + offset_1,
+                                                                              previous_combinations + offset_2);
+            auto const real_difference = (signed)j - (signed)i;
+            CUTL_ASSERT(computed_difference == real_difference,
+                        "Difference between indices %u and %u is incorrect (computed %d instead of %d).", i, j,
+                        computed_difference, real_difference);
+        }
     }
 
     TEST_ASSERTION(cnt == total_combinations, "Wrong number of combinations generated (expected %u, but only got %u).",

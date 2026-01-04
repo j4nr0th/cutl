@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common_defs.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -68,3 +69,27 @@ void combination_iterator_next(combination_iterator_t *this);
  * @return Total number of combinations for the allocator.
  */
 unsigned combination_iterator_total_count(const combination_iterator_t *this);
+
+/**
+ * Get the index at which the specified iteration would appear.
+ *
+ * @param n Number of elements that the selection can be made from.
+ * @param r Number of elements taken per selection.
+ * @param vals Selection of the combination to get the index for.
+ * @return Index of the combination.
+ */
+unsigned combination_get_index(unsigned n, unsigned r, const uint8_t CUTL_ARRAY_ARG(vals, static r));
+
+/**
+ * Get the number of combinations that were processed between the first and second one.
+ *
+ * @param n Number of elements that the selection can be made from.
+ * @param r Number of elements taken per selection.
+ * @param vals_1 Selection of the first combination.
+ * @param vals_2 Selection of the first combination.
+ * @return Number of combinations between the first and second one. Positive value means that the first combination
+ *         occurs before the second one, while the negative value means the opposite. Zero is returned when the two
+ *         are identical.
+ */
+signed combination_get_index_difference(unsigned n, unsigned r, const uint8_t CUTL_ARRAY_ARG(vals_1, static r),
+                                        const uint8_t CUTL_ARRAY_ARG(vals_2, static r));
