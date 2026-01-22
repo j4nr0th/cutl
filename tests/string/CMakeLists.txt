@@ -13,3 +13,11 @@ add_test(NAME format_exponential COMMAND test_format_exponential)
 add_executable(test_string_stream ${CUTL_TEST_COMMON_SOURCES} test_string_stream.c)
 target_link_libraries(test_string_stream PRIVATE cutl)
 add_test(NAME string_stream COMMAND test_string_stream)
+
+add_executable(test_string_trim ${CUTL_TEST_COMMON_SOURCES} test_trim_strings.c)
+target_link_libraries(test_string_trim PRIVATE cutl)
+add_test(NAME string_trim COMMAND test_string_trim)
+
+add_executable(test_string_split ${CUTL_TEST_COMMON_SOURCES} test_split_strings.c)
+target_link_libraries(test_string_split PRIVATE cutl)
+add_test(NAME string_split COMMAND test_string_split)

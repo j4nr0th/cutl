@@ -149,6 +149,34 @@ string8_t string8_shrink(string8_t str, size_t n);
 cutl_result_t string8_reorder(const string8_t *str, unsigned pos1, unsigned pos2, size_t len);
 
 /**
+ * Trim whitespace at the beginning of the string.
+ *
+ * @param str String to trim.
+ * @return Trimmed string with no starting whitespace.
+ */
+string8_t string8_trim_whitespace_before(string8_t str);
+
+/**
+ * Trim whitespace at the end of the string.
+ *
+ * @param str String to trim.
+ * @return Trimmed string with no ending whitespace.
+ */
+string8_t string8_trim_whitespace_after(string8_t str);
+
+/**
+ * Split a string based on some delimiter substring and optionally return resulting split sections.
+ *
+ * @param str String to split.
+ * @param delimiter Substring used to split the string.
+ * @param max_output_count Highest number of split sections that can be returned.
+ * @param output_array Array that receives the sections.
+ * @return Total number of sections, which is always one more than the number of delimiters found in the string.
+ */
+size_t string8_split(string8_t str, string8_t delimiter, size_t max_output_count,
+                     string8_t output_array[max_output_count]);
+
+/**
  * Get the string representation of a ``cutl_result_t`` value.
  *
  * @param result Value to convert to a string.

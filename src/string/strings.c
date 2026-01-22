@@ -2,6 +2,7 @@
 
 #include "../../include/cutl/common_defs.h"
 
+#include <cutf.h>
 #include <stdatomic.h>
 
 cutl_result_t string8_create_substring(const string8_t *const str, const size_t start, const size_t end,
@@ -65,12 +66,12 @@ int32_t string8_has_substring(const string8_t *string, const string8_t *substr)
         return -1;
 
     // Find the first position where `substr` appears inside `string`
-    for (size_t pos = 0; substr->length + pos < string->length; ++pos)
+    for (size_t pos = 0; substr->length + pos <= string->length; ++pos)
     {
         size_t match;
         for (match = 0; match < substr->length; ++match)
         {
-            if (string->data[pos] != substr->data[match])
+            if (string->data[pos + match] != substr->data[match])
                 break;
         }
         if (match == substr->length)
@@ -90,7 +91,7 @@ int32_t string8_has_substring_reverse(const string8_t *string, const string8_t *
         size_t match;
         for (match = substr->length; match > 0; --match)
         {
-            if (string->data[pos - 1] != substr->data[match - 1])
+            if (string->data[pos - match - 1] != substr->data[match - 1])
                 break;
         }
         if (match == 0)
@@ -146,4 +147,77 @@ cutl_result_t string8_reorder(const string8_t *str, const unsigned pos1, const u
         return CUTL_RESULT_INDEX_OUT_OF_BOUNDS;
     memmove(str->data + pos2, str->data + pos1, len);
     return CUTL_SUCCESS;
+}
+
+string8_t string8_trim_whitespace_before(string8_t str)
+{
+    while (str.length)
+    {
+        char32_t first_char;
+        size_t consumed, written;
+        cutf_state_t state = {};
+        auto const res = cutf_s8tos32(str.length, str.data, 1, &consumed, &first_char, &written, &state);
+        if (res == CUTF_INVALID_INPUT || written != 1 || !cutf_is_whitespace(first_char))
+            break;
+
+        str.length -= consumed;
+        str.data += consumed;
+    }
+    return str;
+}
+
+string8_t string8_trim_whitespace_after(string8_t str)
+{
+    while (str.length)
+    {
+        char32_t last_char;
+        size_t consumed, written;
+        // We try and consume last n characters up to 4 until we get a valid character
+        for (size_t i = 0; i < 4 && i < str.length; ++i)
+        {
+            cutf_state_t state = {};
+            auto const res =
+                cutf_s8tos32(i + 1, str.data + str.length - i - 1, 1, &consumed, &last_char, &written, &state);
+            if (res != CUTF_INVALID_INPUT && written == 1)
+            {
+                break;
+            }
+        }
+        if (!cutf_is_whitespace(last_char))
+            break;
+
+        str.length -= consumed;
+    }
+
+    return str;
+}
+
+size_t string8_split(string8_t str, const string8_t delimiter, const size_t max_output_count,
+                     string8_t output_array[const max_output_count])
+{
+    size_t output_count = 0;
+    // Keep going until we either run out of separator or strings.
+    while (str.length)
+    {
+        auto const pos = string8_has_substring(&str, &delimiter);
+        if (pos == -1)
+            break;
+        // Slice off the string if possible
+        if (output_count < max_output_count)
+        {
+            output_array[output_count] = (string8_t){.length = pos, .data = str.data};
+        }
+        output_count += 1;
+        // Advance the current string
+        str = string8_advance(str, pos + delimiter.length);
+    }
+
+    // Do the one last output for the remaining string
+    if (output_count < max_output_count)
+    {
+        output_array[output_count] = str;
+    }
+    output_count += 1;
+
+    return output_count;
 }

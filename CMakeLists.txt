@@ -3,6 +3,8 @@ project(cutl C)
 
 set(CMAKE_C_STANDARD 23)
 
+add_subdirectory(cutf)
+
 set(CUTL_ITERATOR_SOURCES
         src/iterators/multidim_iteration.c
         src/iterators/permutation_iterator.c
@@ -37,7 +39,7 @@ add_library(cutl STATIC
         ${CUTL_STRING_SOURCES}
         ${CUTL_THREAD_SOURCES}
 )
-target_link_libraries(cutl PUBLIC m)
+target_link_libraries(cutl PUBLIC m cutf)
 target_include_directories(cutl INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_compile_definitions(cutl PUBLIC CUTL_ENABLE_ASSERTS)
