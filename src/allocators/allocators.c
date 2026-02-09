@@ -1,5 +1,7 @@
 #include "../../include/cutl/allocators.h"
 
+#include "allocator_internal.h"
+
 enum : size_t
 {
     STD_ALLOCATOR_MAGIC = 0xB160B00B1354BABE // :P
@@ -83,6 +85,25 @@ void *cutl_alloc(const cutl_allocator_t *allocator, const size_t size)
     if (size == 0)
         return nullptr;
     return allocator->allocate(allocator->state, size);
+}
+
+void *cutl_alloc_group(const cutl_allocator_t *const allocator, const cutl_alloc_info_t *const allocations)
+{
+    size_t total_size = 0;
+    for (auto ptr = allocations; ptr->p_ptr != nullptr; ++ptr)
+    {
+        total_size += _round_align_ceil(ptr->size);
+    }
+    auto const memory = cutl_alloc(allocator, total_size);
+    if (!memory)
+        return nullptr;
+    size_t offset = 0;
+    for (auto ptr = allocations; ptr->p_ptr != nullptr; ++ptr)
+    {
+        *ptr->p_ptr = (void *)((char *)memory + offset);
+        offset += _round_align_ceil(ptr->size);
+    }
+    return memory;
 }
 
 void *cutl_realloc(const cutl_allocator_t *allocator, void *ptr, const size_t new_size)

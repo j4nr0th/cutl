@@ -55,6 +55,23 @@ const cutl_allocator_t *cutl_allocator_get_default(void);
  */
 void *cutl_alloc(const cutl_allocator_t *allocator, size_t size);
 
+typedef struct
+{
+    size_t size;
+    void **p_ptr;
+} cutl_alloc_info_t;
+
+/**
+ * Create a group of allocations from a single call, all of which are aligned to `max_align_t` and are released
+ * together.
+ *
+ * @param allocator Allocator ot use for allocation.
+ * @param allocations Array with information about what size the allocations should be and where the resulting pointer
+ * should be returned to.
+ * @return Pointer to be freed to release all allocations. If failed, nullptr is returned.
+ */
+void *cutl_alloc_group(const cutl_allocator_t *allocator, const cutl_alloc_info_t *allocations);
+
 /**
  * Reallocate previously allocated memory to a block of a new size.
  *
