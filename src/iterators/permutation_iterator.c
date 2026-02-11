@@ -146,14 +146,26 @@ int permutation_iterator_current_sign(const permutation_iterator_t *this)
     return sign & 1;
 }
 
-unsigned permutation_iterator_total_count(const permutation_iterator_t *this)
+static uintmax_t calculate_permutation_count(uint8_t const n, uint8_t const r)
 {
-    const unsigned n = this->n;
-    const unsigned r = this->r;
+    // Handle special cases first
+    if (r == 0)
+        return 1;
+    if (r == 1)
+        return n;
 
-    unsigned count = 1;
-    for (unsigned i = n; i > (n - r); --i)
+    uintmax_t count = 1;
+    for (unsigned i = n; i + r > n; --i)
         count *= i;
 
     return count;
+}
+unsigned permutation_iterator_total_count(const permutation_iterator_t *this)
+{
+    return calculate_permutation_count(this->n, this->r);
+}
+
+unsigned permutation_total_count(const uint8_t n, const uint8_t r)
+{
+    return calculate_permutation_count(n, r);
 }

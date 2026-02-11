@@ -80,9 +80,20 @@ int permutation_iterator_current_sign(const permutation_iterator_t *this);
 /**
  * Compute the total number of permutations for the values of ``n`` and ``r`` of this iterator.
  *
- * Total number of iterations is given by :math:`\frac{n!}{r!}`
+ * The total number of iterations is given by :math:`\frac{n!}{r!}`
  *
- * @param this Allocator to get the total permutation count for.
- * @return Total number of permutations for the allocator.
+ * @param this Iterator to get the total permutation count for.
+ * @return Total number of permutations for the iterator.
  */
 unsigned permutation_iterator_total_count(const permutation_iterator_t *this);
+
+/**
+ * Compute the total number of permutations for the values of ``n`` and ``r`` of this iterator.
+ *
+ * The total number of iterations is given by :math:`\frac{n!}{r!}`
+ *
+ * @param n Number of elements that the selection can be made from.
+ * @param r Number of elements taken per selection.
+ * @return Total number of permutations for the iterator.
+ */
+unsigned permutation_total_count(uint8_t n, uint8_t r);

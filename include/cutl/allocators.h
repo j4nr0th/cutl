@@ -55,15 +55,21 @@ const cutl_allocator_t *cutl_allocator_get_default(void);
  */
 void *cutl_alloc(const cutl_allocator_t *allocator, size_t size);
 
+/**
+ * Type used to specify how much memory to allocate and where to return the resulting memory.
+ */
 typedef struct
 {
-    size_t size;
-    void **p_ptr;
+    size_t size;  // Size of the allocation.
+    void **p_ptr; // Pointer to where the pointer to the allocation should be returned.
 } cutl_alloc_info_t;
 
 /**
  * Create a group of allocations from a single call, all of which are aligned to `max_align_t` and are released
  * together.
+ *
+ * Keep in mind that because all the allocations are bound together, they cannot be deallocated. If it is really
+ * necessary, a new allocation must be made first, all the data copied, then moved.
  *
  * @param allocator Allocator ot use for allocation.
  * @param allocations Array with information about what size the allocations should be and where the resulting pointer

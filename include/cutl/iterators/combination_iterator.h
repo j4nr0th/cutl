@@ -63,12 +63,23 @@ void combination_iterator_next(combination_iterator_t *this);
 /**
  * Compute the total number of combinations for the values of ``n`` and ``r`` of this iterator.
  *
- * Total number of iterations is given by :math:`\frac{n!}{(n - r)! \cdot r!}`
+ * The total number of iterations is given by :math:`\frac{n!}{(n - r)! \cdot r!}`
  *
- * @param this Allocator to get the total combination count for.
- * @return Total number of combinations for the allocator.
+ * @param this Iterator to get the total combination count for.
+ * @return Total number of combinations for the iterator.
  */
 unsigned combination_iterator_total_count(const combination_iterator_t *this);
+
+/**
+ * Compute the total number of combinations for the values of ``n`` and ``r`` of this iterator.
+ *
+ * The total number of iterations is given by :math:`\frac{n!}{(n - r)! \cdot r!}`
+ *
+ * @param n Number of elements that the selection can be made from.
+ * @param r Number of elements taken per selection.
+ * @return Total number of combinations for the iterator.
+ */
+unsigned combination_total_count(uint8_t n, uint8_t r);
 
 /**
  * Get the index at which the specified iteration would appear.

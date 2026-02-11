@@ -87,6 +87,11 @@ unsigned combination_iterator_total_count(const combination_iterator_t *this)
     return calculate_combination_count(this->n, this->r);
 }
 
+unsigned combination_total_count(const uint8_t n, const uint8_t r)
+{
+    return calculate_combination_count(n, r);
+}
+
 unsigned combination_get_index(const unsigned n, const unsigned r, const uint8_t CUTL_ARRAY_ARG(vals, const static r))
 {
     // Check that N and R are sensible
