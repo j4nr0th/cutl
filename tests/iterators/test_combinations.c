@@ -95,7 +95,7 @@ static void test_combinations(const uint8_t n, const uint8_t r)
 
 int main(void)
 {
-    // test_combinations(3, 0);
+    test_combinations(3, 0);
     test_combinations(3, 1);
     test_combinations(3, 2);
     test_combinations(5, 2);

@@ -9,8 +9,10 @@ struct combination_iterator_t
     uint8_t counters[];
 };
 
-size_t combination_iterator_required_memory(const uint8_t r)
+size_t combination_iterator_required_memory(uint8_t r)
 {
+    if (r == 0)
+        r = 1; // We need at least one element
     return sizeof(combination_iterator_t) + r * sizeof(uint8_t);
 }
 
@@ -24,6 +26,13 @@ void combination_iterator_init(combination_iterator_t *this, const uint8_t n, co
 
 void combination_iterator_reset(combination_iterator_t *this)
 {
+    // Special case when r is 0
+    if (this->r == 0)
+    {
+        this->counters[0] = 0;
+        return;
+    }
+
     for (unsigned i = 0; i < this->r; ++i)
     {
         this->counters[i] = i;
@@ -37,6 +46,9 @@ const uint8_t *combination_iterator_current(const combination_iterator_t *this)
 
 int combination_iterator_is_done(const combination_iterator_t *this)
 {
+    // Special case when r is 0
+    if (this->r == 0)
+        return this->counters[0] == 1;
     return this->counters[this->r - 1] == this->n;
 }
 
@@ -44,6 +56,13 @@ void combination_iterator_next(combination_iterator_t *this)
 {
     if (combination_iterator_is_done(this))
         return;
+
+    if (this->r == 0)
+    {
+        // Special case when r is 0
+        this->counters[0] = 1;
+        return;
+    }
 
     for (unsigned i = this->r; i > 0; --i)
     {
@@ -96,6 +115,10 @@ unsigned combination_get_index(const unsigned n, const unsigned r, const uint8_t
 {
     // Check that N and R are sensible
     CUTL_ASSERT(n >= r, "Number of elements must be greater than or equal to the number of elements per permutation.");
+    // Special case when r is 0
+    if (r == 0)
+        return 0;
+
     // Check indices are not out of bounds
     for (unsigned i = 0; i < r; ++i)
     {
