@@ -104,3 +104,27 @@ unsigned combination_get_index(unsigned n, unsigned r, const uint8_t CUTL_ARRAY_
  */
 signed combination_get_index_difference(unsigned n, unsigned r, const uint8_t CUTL_ARRAY_ARG(vals_1, static r),
                                         const uint8_t CUTL_ARRAY_ARG(vals_2, static r));
+
+/**
+ * Set the iterator to a combination based on its lexicographical ordering index.
+ *
+ * Lexicographical ordering means that for combination ``A < B``, it means that for
+ * the first non-equal pair of entries of ``a`` and ``b``, it holds that ``a < b``.
+ *
+ * @param iter Combination iterator to set.
+ * @param index Index of the combination to set.
+ */
+void combination_iterator_set_to_index(combination_iterator_t *iter, unsigned index);
+
+/**
+ * Set the array to a combination based on its lexicographical ordering index.
+ *
+ * Lexicographical ordering means that for combination ``A < B``, it means that for
+ * the first non-equal pair of entries of ``a`` and ``b``, it holds that ``a < b``.
+ *
+ * @param n Number of elements that the selection can be made from.
+ * @param r Number of elements taken per selection.
+ * @param vals Array which will receive the combination.
+ * @param index Index of the combination to set.
+ */
+void combination_set_to_index(uint8_t n, uint8_t r, uint8_t CUTL_ARRAY_ARG(vals, r), unsigned index);

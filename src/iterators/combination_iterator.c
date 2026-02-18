@@ -226,3 +226,35 @@ signed combination_get_index_difference(const unsigned n, const unsigned r,
 
     return negate ? -dif : dif;
 }
+
+void combination_iterator_set_to_index(combination_iterator_t *const iter, const unsigned index)
+{
+    combination_set_to_index(iter->n, iter->r, iter->counters, index);
+}
+
+void combination_set_to_index(const uint8_t n, const uint8_t r, uint8_t CUTL_ARRAY_ARG(vals, r), const unsigned index)
+{
+    // Handle the exception
+    if (r == 0)
+        return;
+
+    unsigned remaining = index;
+    unsigned min_val = 0;
+    for (unsigned i = 0; i < r - 1; ++i)
+    {
+        unsigned j;
+        for (j = min_val; j < n - i + 1; ++j)
+        {
+            auto const count = calculate_combination_count(n - 1 - j, r - 1 - i);
+            if (remaining < count)
+            {
+                break;
+            }
+            remaining -= count;
+        }
+        vals[i] = j;
+        min_val = j + 1;
+    }
+
+    vals[r - 1] = min_val + remaining;
+}

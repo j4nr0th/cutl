@@ -18,7 +18,7 @@ static int are_combinations_equal(const unsigned r, const uint8_t a[static r], c
 
     for (unsigned i = 0; i < r; ++i)
     {
-        for (unsigned j = i + 1; j < r; ++j)
+        for (unsigned j = i; j < r; ++j)
             matching_count += a[i] == b[j];
     }
 
@@ -37,6 +37,9 @@ static void test_combinations(const uint8_t n, const uint8_t r)
     unsigned cnt = 0;
     uint8_t *const previous_combinations = malloc((size_t)r * total_combinations);
     TEST_ASSERTION(previous_combinations, "Failed to allocate memory for previous combinations.");
+    uint8_t *const test_combination = malloc(r * sizeof(*test_combination));
+    TEST_ASSERTION(test_combination, "Failed to allocate memory for test combination.");
+
     size_t idx = 0;
     while (!combination_iterator_is_done(p))
     {
@@ -70,6 +73,7 @@ static void test_combinations(const uint8_t n, const uint8_t r)
         combination_iterator_next(p);
     }
 
+    // Check that combination index difference is correctly computed
     for (unsigned i = 0; i < cnt; ++i)
     {
         auto const offset_1 = (size_t)i * r;
@@ -85,9 +89,18 @@ static void test_combinations(const uint8_t n, const uint8_t r)
         }
     }
 
+    // Check that setting the combination based on lexicographic index is correctly done
+    for (unsigned i = 0; i < cnt; ++i)
+    {
+        combination_set_to_index(n, r, test_combination, i);
+        TEST_ASSERTION(are_combinations_equal(r, test_combination, previous_combinations + (size_t)(i * r)),
+                       "Combination set to index %u is incorrect.", i);
+    }
+
     TEST_ASSERTION(cnt == total_combinations, "Wrong number of combinations generated (expected %u, but only got %u).",
                    total_combinations, cnt);
 
+    free(test_combination);
     free(previous_combinations);
     free(p);
     printf("Finished n: %u r: %u\n", (unsigned)n, (unsigned)r);
