@@ -73,7 +73,7 @@ static void test_combinations(const uint8_t n, const uint8_t r)
         combination_iterator_next(p);
     }
 
-    // Check that combination index difference is correctly computed
+    // Check that the combination index difference is correctly computed
     for (unsigned i = 0; i < cnt; ++i)
     {
         auto const offset_1 = (size_t)i * r;
@@ -113,5 +113,6 @@ int main(void)
     test_combinations(3, 2);
     test_combinations(5, 2);
     test_combinations(5, 5);
+    test_combinations(7, 6);
     test_combinations(10, 3);
 }

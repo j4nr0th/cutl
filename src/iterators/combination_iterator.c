@@ -243,7 +243,7 @@ void combination_set_to_index(const uint8_t n, const uint8_t r, uint8_t CUTL_ARR
     for (unsigned i = 0; i < r - 1; ++i)
     {
         unsigned j;
-        for (j = min_val; j < n - i + 1; ++j)
+        for (j = min_val; j < n - r + i; ++j)
         {
             auto const count = calculate_combination_count(n - 1 - j, r - 1 - i);
             if (remaining < count)
