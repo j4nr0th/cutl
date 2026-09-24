@@ -11,7 +11,6 @@
  */
 typedef struct multidim_iterator_t multidim_iterator_t;
 
-
 /**
  * Calculates the amount of memory needed to store a multidim_iterator_t structure
  * with the specified number of dimensions.
@@ -33,7 +32,7 @@ size_t multidim_iterator_needed_memory(size_t ndims);
  */
 void multidim_iterator_init(multidim_iterator_t *this, size_t ndims, const size_t CUTL_ARRAY_ARG(dims, static ndims));
 /**
- * Alternative to `multidim_iterator_init` to initalize the iterator by iteratevly
+ * Alternative to `multidim_iterator_init` to initalize the iterator by iteratively
  * initializing the dimensions. Note that this function has to be called for all
  * dimensions from the lowest to the highest in order.
  *

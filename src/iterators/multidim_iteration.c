@@ -47,7 +47,10 @@ void multidim_iterator_init_dim(multidim_iterator_t *this, size_t dim, size_t si
 {
     this->ndims = dim + 1;
     multidim_iterator_dims_ptr(this)[dim] = size;
-    multidim_iterator_offsets_ptr(this)[dim] = 0;
+    size_t *const iter_offsets = multidim_iterator_offsets_ptr(this);
+    if (dim > 0)
+        iter_offsets[dim - 1] = 0;
+    iter_offsets[dim] = 0;
 }
 
 void multidim_iterator_set_to_start(multidim_iterator_t *this)
