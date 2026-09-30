@@ -1,5 +1,5 @@
-#include <cutl/allocators/fixed_size_allocator.h>
 #include "allocator_common_test.h"
+#include <cutl/allocators/fixed_size_allocator.h>
 #include <time.h>
 
 enum : size_t
@@ -55,10 +55,10 @@ int main(const int argc, const char *CUTL_ARRAY_ARG(argv, const static argc))
     TEST_ASSERTION(end_ptr != argv[1], "Parameter was not a positive integer.");
     TEST_ASSERTION(cnt > 0, "Parameter was not a positive integer.");
 
-    auto const total_required_memory =
-        cnt * 2 * (ALLOCATION_MAX_SIZE + 8) + (cnt + 1) * 24 + 56;
+    auto const per_block = (size_t)ALLOCATION_MAX_SIZE + 3 * (size_t)TEST_ALLOCATOR_ALIGNMENT;
+    auto const total_required_memory = cnt * 2 * per_block + (cnt + 1) * 3 * (size_t)TEST_ALLOCATOR_ALIGNMENT;
 
-    unsigned char *const memory = malloc(total_required_memory);
+    unsigned char *const memory = test_aligned_alloc(total_required_memory);
     TEST_ASSERTION(memory != nullptr, "Failed to allocate memory.");
     cutl_allocator_fs_t *allocator;
     auto const res = cutl_allocator_fs_create(total_required_memory, memory, &allocator);

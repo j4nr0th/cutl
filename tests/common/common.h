@@ -1,10 +1,31 @@
 #pragma once
+#include <cutl/common_defs.h>
+#include <math.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <cutl/common_defs.h>
-#include <math.h>
+// The alignment the library was built with. It is only handed to us as a definition when a project
+// asked for something stricter than the default.
+#if defined(CUTL_ALLOCATOR_ALIGNMENT)
+#define TEST_ALLOCATOR_ALIGNMENT CUTL_ALLOCATOR_ALIGNMENT
+#else
+#define TEST_ALLOCATOR_ALIGNMENT alignof(max_align_t)
+#endif
+
+/**
+ * Allocate memory aligned the way the library hands out its own allocations. The allocators which
+ * take the memory they manage from the caller insist on exactly this, and refuse anything looser.
+ *
+ * @param size Amount of memory to allocate, in bytes. Rounded up to the allocation alignment.
+ * @return Aligned memory, to be released with `free`.
+ */
+static void *test_aligned_alloc(const size_t size)
+{
+    return aligned_alloc(TEST_ALLOCATOR_ALIGNMENT,
+                         (size + TEST_ALLOCATOR_ALIGNMENT - 1) & ~(size_t)(TEST_ALLOCATOR_ALIGNMENT - 1));
+}
 
 #ifdef GCC_DETECTED
 __attribute__((format(printf, 5, 6))) __attribute__((noreturn))

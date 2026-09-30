@@ -7,8 +7,8 @@ struct cutl_allocator_fs_t
     size_t free_blocks;    // Number of free blocks. These are stored after the used blocks.
     size_t block_count;    // Total allocation count.
     size_t total_size;     // Total size of the allocator.
-    alignas(
-        max_align_t) unsigned char memory[]; // Memory which includes allocations, as well as the block array at the end
+    alignas(ALLOCATOR_ALIGNMENT) unsigned char memory[]; // Memory which includes allocations, as well as the block
+                                                         // array at the end
 };
 
 typedef struct
@@ -68,7 +68,7 @@ static int _fixed_size_allocator_validate(const cutl_allocator_fs_t *const this)
         if (block->state == MEMORY_BLOCK_USED)
         {
             const int failed_guard_check =
-                !_verify_block_in_use(block->size, (void *)((uintptr_t)this->memory + block->offset));
+                !allocator_check_guards((void *)((uintptr_t)this->memory + block->offset), block->size);
             if (failed_guard_check)
             {
                 CUTL_ASSERT(0, "Block %zu failed the guard check.", i_block);
@@ -146,8 +146,8 @@ static void *make_block_guarded(const cutl_allocator_fs_t *const this, const mem
 {
 
     auto const block_start = (uintptr_t)this->memory + block.offset;
-    _prepare_block_used(block.size, (void *)block_start);
-    return (void *)(block_start + ALLOCATOR_GUARD_BYTE_COUNT);
+    allocator_set_guards((void *)block_start, block.size);
+    return (void *)(block_start + allocator_user_offset());
 }
 
 // static void print_current_blocks(cutl_allocator_fs_t *const this)
@@ -213,7 +213,7 @@ static cutl_result_t fixed_size_allocator_allocate_block(cutl_allocator_fs_t *co
     p_first->offset += sizeof(memory_block_info_t);
 
     // Round up the size needed
-    auto const effective_size = _get_block_size(size);
+    auto const effective_size = allocator_block_size(size);
     // Find a block we can use
     unsigned i_chosen = this->block_count;
     for (unsigned i_block = 0; i_block < this->free_blocks; ++i_block)
@@ -251,7 +251,7 @@ static cutl_result_t fixed_size_allocator_allocate_block(cutl_allocator_fs_t *co
 
     memory_block_info_t *const p_chosen = free_block_array + i_chosen;
     const size_t remaining_size = p_chosen->size - effective_size;
-    if (remaining_size > 2LLU * ALLOCATOR_GUARD_BYTE_COUNT || i_chosen == first_block)
+    if (remaining_size > ALLOCATOR_GUARD_TOTAL || i_chosen == first_block)
     {
         // Split the block into the (free) left half and (used) right half
         const memory_block_info_t new_block = {
@@ -402,7 +402,7 @@ static uintptr_t address_to_offset(const cutl_allocator_fs_t *const this, void *
         return ~(uintptr_t)0;
     }
     // Compensate for the guard bytes
-    memory_ptr -= ALLOCATOR_GUARD_BYTE_COUNT;
+    memory_ptr -= allocator_user_offset();
     // Make memory relative to the allocator
     memory_ptr -= (uintptr_t)this->memory;
     return memory_ptr;
@@ -447,9 +447,9 @@ static cutl_result_t fixed_buffer_deallocate_block(cutl_allocator_fs_t *const th
         return CUTL_RESULT_DOUBLE_DEALLOCATION;
     }
 
-    // Check the block guards are set up correctly
-    CUTL_ASSERT(_verify_block_in_use(block->size, (void *)((uintptr_t)this->memory + block->offset)),
-                "Block guards are not set up correctly.");
+    // Nothing may have written outside of the memory the caller was given.
+    if (!allocator_check_guards((void *)((uintptr_t)this->memory + block->offset), block->size))
+        return CUTL_RESULT_CORRUPTED_POINTER;
     // Mark block as free
     block->state = MEMORY_BLOCK_FREE;
     // Move the block to the free blocks region by swapping the last used block with the first free block
@@ -509,8 +509,12 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
         return CUTL_RESULT_CORRUPTED_POINTER;
     }
 
+    // The block is replaced further down and allocating reorders the block array, which would move it
+    // out from under us, so remember how much of it we are allowed to read before that can happen.
+    const size_t old_usable_size = allocator_usable_size(all_memory_blocks[i_block].size);
+
     // Get the real size that will be needed
-    auto const real_size = _get_block_size(size);
+    auto const real_size = allocator_block_size(size);
 
     memory_block_info_t *block = all_memory_blocks + i_block;
     // Are we good?
@@ -539,7 +543,7 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
             return CUTL_RESULT_CORRUPTED_POINTER;
         }
         // Move the new memory (it may overlap with the old)
-        memmove((void *)((uintptr_t)this->memory + all_memory_blocks[i_new_block].offset + ALLOCATOR_GUARD_BYTE_COUNT),
+        memmove((void *)((uintptr_t)this->memory + all_memory_blocks[i_new_block].offset + allocator_user_offset()),
                 old_ptr, size);
         void *const new_memory = make_block_guarded(this, all_memory_blocks[i_new_block]);
         *p_memory = new_memory;
@@ -564,8 +568,8 @@ cutl_result_t cutl_allocator_fs_reallocate(cutl_allocator_fs_t *const this, cons
         auto res = cutl_allocator_fs_allocate(this, size, &mem);
         if (res != CUTL_SUCCESS)
             return res;
-        // Copy the memory
-        memcpy(mem, old_ptr, size);
+        // Copy the memory. The new block is larger than the old one, so only copy what the old one holds.
+        memcpy(mem, old_ptr, size < old_usable_size ? size : old_usable_size);
         // Release the current block
         res = fixed_buffer_deallocate_block(this, all_memory_blocks, i_block);
         CUTL_ASSERT(res == CUTL_SUCCESS, "Could not release the old memory block: (%s) - %s",
@@ -611,7 +615,7 @@ cutl_result_t cutl_allocator_fs_real_block_size(const cutl_allocator_fs_t *this,
         return CUTL_RESULT_CORRUPTED_POINTER;
 
     auto const block = blocks + i_block;
-    *p_size = block->size - 2LLU * ALLOCATOR_GUARD_BYTE_COUNT;
+    *p_size = allocator_usable_size(block->size);
     return CUTL_SUCCESS;
 }
 
@@ -666,11 +670,11 @@ static void *fixed_size_allocator_wrap_realloc(void *state, void *old_ptr, const
 cutl_result_t cutl_allocator_fs_create(size_t size, unsigned char CUTL_ARRAY_ARG(memory, const size),
                                        cutl_allocator_fs_t **p_allocator)
 {
-    if (!_check_alignment(memory))
+    if (!allocator_is_aligned(memory))
         return CUTL_RESULT_INSUFFICIENT_ALIGNMENT;
 
     // Make sure the size rounded down to the correct alignment
-    size = _round_align_floor(size);
+    size = allocator_round_down(size);
 
     if (size < sizeof(cutl_allocator_fs_t))
         return CUTL_RESULT_INSUFFICIENT_BUFFER;

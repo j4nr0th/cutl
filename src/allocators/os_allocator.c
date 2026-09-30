@@ -2,14 +2,14 @@
 #include "allocator_internal.h"
 
 #if __has_include(<sys/mman.h>)
-#    include <sys/mman.h>
-#    include <unistd.h>
-#    define USE_MMAP
-#    define FOUND_API
+#include <sys/mman.h>
+#include <unistd.h>
+#define USE_MMAP
+#define FOUND_API
 #endif
 
 #ifndef FOUND_API
-#    error No OS allocator API was found
+#error No OS allocator API was found
 #endif
 
 static constexpr uintptr_t OS_ALLOCATOR_MAGIC = 0xAB16BADBABE;
@@ -17,17 +17,22 @@ static constexpr uintptr_t OS_ALLOCATOR_MAGIC = 0xAB16BADBABE;
 #define CHECK_OS_MAGIC(state)                                                                                          \
     CUTL_ASSERT((uintptr_t)state == OS_ALLOCATOR_MAGIC, "OS Allocator magic number did not match")
 
+/**
+ * Header stored in front of every mapping. Unlike the other allocators, this one hands out whole
+ * pages rather than carving blocks out of them, so it keeps its size next to the mapping instead of
+ * laying out guard bytes around a block of a known size.
+ */
 typedef struct
 {
     size_t size;
-    alignas(max_align_t) unsigned char memory[];
+    alignas(ALLOCATOR_ALIGNMENT) unsigned char memory[];
 } mapping_info_t;
 
 static void *prepare_block(void *ptr, const size_t size)
 {
     auto const info = (mapping_info_t *)ptr;
     info->size = size;
-    // _prepare_block_used(size - sizeof(*info), info->memory);
+    CUTL_ASSERT(allocator_is_aligned(info->memory), "The mapping did not start out aligned.");
     return info->memory;
 }
 

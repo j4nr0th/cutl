@@ -1,6 +1,7 @@
 #include "../../include/cutl/allocators.h"
 
 #include "allocator_internal.h"
+#include <stdlib.h>
 
 enum : size_t
 {
@@ -92,7 +93,7 @@ void *cutl_alloc_group(const cutl_allocator_t *const allocator, const cutl_alloc
     size_t total_size = 0;
     for (auto ptr = allocations; ptr->p_ptr != nullptr; ++ptr)
     {
-        total_size += _round_align_ceil(ptr->size);
+        total_size += allocator_round_up(ptr->size);
     }
     auto const memory = cutl_alloc(allocator, total_size);
     if (!memory)
@@ -101,7 +102,7 @@ void *cutl_alloc_group(const cutl_allocator_t *const allocator, const cutl_alloc
     for (auto ptr = allocations; ptr->p_ptr != nullptr; ++ptr)
     {
         *ptr->p_ptr = (void *)((char *)memory + offset);
-        offset += _round_align_ceil(ptr->size);
+        offset += allocator_round_up(ptr->size);
     }
     return memory;
 }

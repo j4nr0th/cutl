@@ -1,17 +1,30 @@
 #include "../../include/cutl/allocators/block_allocator.h"
 #include "allocator_internal.h"
+#include <limits.h>
 #include <stdbit.h>
 
 struct cutl_allocator_block_t
 {
-    cutl_allocator_t base;                       // Allocator interface
-    unsigned block_size;                         // Size of individual blocks
-    unsigned block_count;                        // Number of blocks in the allocator
-    alignas(max_align_t) unsigned char memory[]; // Memory used to back the allocations and store the block states
+    cutl_allocator_t base; // Allocator interface
+    unsigned block_size;   // Size of individual blocks
+    unsigned block_count;  // Number of blocks in the allocator
+    alignas(
+        ALLOCATOR_ALIGNMENT) unsigned char memory[]; // Memory used to back the allocations and store the block states
 };
 
-// Counters for blocks must come in units of `ALLOCATOR_MINIMUM_ALIGNMENT` bytes.
-auto constexpr blocks_per_counter_unit = ALLOCATOR_MINIMUM_ALIGNMENT * 8LLU;
+// Counters for blocks must come in units of `ALLOCATOR_ALIGNMENT` bytes.
+auto constexpr blocks_per_counter_unit = ALLOCATOR_ALIGNMENT * 8LLU;
+
+/**
+ * Compute the size of the region holding the per block counters, which sits in front of the blocks.
+ *
+ * @param this Allocator to use.
+ * @return Size of the counter region, in bytes.
+ */
+static size_t counter_bytes(const cutl_allocator_block_t *const this)
+{
+    return (this->block_count + blocks_per_counter_unit - 1) / blocks_per_counter_unit * ALLOCATOR_ALIGNMENT;
+}
 
 /**
  * Compute the offset of the block's start in the allocator.
@@ -22,9 +35,7 @@ auto constexpr blocks_per_counter_unit = ALLOCATOR_MINIMUM_ALIGNMENT * 8LLU;
  */
 static uintptr_t block_offset(const cutl_allocator_block_t *const this, const unsigned block_idx)
 {
-    auto const offset_counters =
-        (this->block_count + blocks_per_counter_unit - 1) / blocks_per_counter_unit * ALLOCATOR_MINIMUM_ALIGNMENT;
-    return offset_counters + (uintptr_t)block_idx * this->block_size;
+    return counter_bytes(this) + (uintptr_t)block_idx * this->block_size;
 }
 
 /**
@@ -116,26 +127,26 @@ cutl_result_t cutl_allocator_block_allocate(cutl_allocator_block_t *const this, 
     block_set_state(this, block_idx, true);
     // Set up the block guards
     auto const ptr_block = this->memory + block_offset(this, block_idx);
-    _prepare_block_used(this->block_size, ptr_block);
+    allocator_set_guards(ptr_block, this->block_size);
     // Return the memory pointer
-    *p_memory = (void *)(ptr_block + ALLOCATOR_GUARD_BYTE_COUNT);
+    *p_memory = (void *)(ptr_block + allocator_user_offset());
 
     return CUTL_SUCCESS;
 }
 
 /**
- * Convert the absolute address of a block from the block allocator to a relative offset.
+ * Convert the absolute address of a block from the block allocator to an offset relative to where
+ * the blocks start.
  *
  * @param this Allocator to compute the offset relative to.
  * @param memory Absolute memory address to convert to the relative offset.
- * @return Offset of the block's start from this->memory or `~(uintptr_t)0` if the memory is not from the allocator.
+ * @return Offset of the address from the first block, or `~(uintptr_t)0` if the address was not
+ * allocated with this allocator.
  */
 static uintptr_t address_to_offset(const cutl_allocator_block_t *const this, const void *const memory)
 {
     auto const address = (uintptr_t)memory;
-    auto const counter_bytes =
-        (this->block_count + blocks_per_counter_unit - 1) / blocks_per_counter_unit * ALLOCATOR_MINIMUM_ALIGNMENT;
-    auto const blocks_start = (uintptr_t)this->memory + counter_bytes;
+    auto const blocks_start = (uintptr_t)this->memory + counter_bytes(this);
     // Make sure we are not out of bounds
     if (address < blocks_start || address >= blocks_start + (uintptr_t)this->block_count * this->block_size)
         return ~(uintptr_t)0;
@@ -147,33 +158,41 @@ cutl_result_t cutl_allocator_block_deallocate(cutl_allocator_block_t *const this
 {
     // Check if the block can even be from this allocator
     auto offset = address_to_offset(this, memory);
-    if (offset == ~(uintptr_t)0 || offset < ALLOCATOR_GUARD_BYTE_COUNT)
+    if (offset == ~(uintptr_t)0 || offset < allocator_user_offset())
         return CUTL_RESULT_MISMATCHED_ALLOCATOR;
 
     // Adjust the offset to account for guard bytes
-    offset -= ALLOCATOR_GUARD_BYTE_COUNT;
+    offset -= allocator_user_offset();
     // Offset should be a multiple of block size
     if (offset % this->block_size != 0)
         return CUTL_RESULT_CORRUPTED_POINTER;
     // Get the block index
     auto const block_idx = offset / this->block_size;
-    // Assert the block is free
-    CUTL_ASSERT(block_get_state(this, block_idx) == 1, "Block %zu was not free!", block_idx);
+    // Assert the block is in use
+    CUTL_ASSERT(block_get_state(this, block_idx) == 1, "Block %zu was not in use!", block_idx);
+    // Nothing may have written outside of the memory the caller was given.
+    if (!allocator_check_guards(this->memory + block_offset(this, block_idx), this->block_size))
+        return CUTL_RESULT_CORRUPTED_POINTER;
     // Mark the block as free
     block_set_state(this, block_idx, false);
     return CUTL_SUCCESS;
 }
 
 cutl_result_t cutl_allocator_block_reallocate(cutl_allocator_block_t *const this, void *const memory, const size_t size,
-                                              void **const p_memory)
+                                              void **p_memory)
 {
     // Just check that the memory passed to the function was from this allocator
     auto const offset = address_to_offset(this, memory);
-    if (offset == ~(uintptr_t)0 || offset < ALLOCATOR_GUARD_BYTE_COUNT)
+    if (offset == ~(uintptr_t)0 || offset < allocator_user_offset())
         return CUTL_RESULT_MISMATCHED_ALLOCATOR;
-
+    // The offset is relative to where the blocks start, so step back over the front guard to reach
+    // the start of the block itself.
+    auto const block_idx = (unsigned)((offset - allocator_user_offset()) / this->block_size);
+    // Nothing may have written outside of the memory the caller was given.
+    if (!allocator_check_guards(this->memory + block_offset(this, block_idx), this->block_size))
+        return CUTL_RESULT_CORRUPTED_POINTER;
     // Is the requested size too large?
-    if (_get_block_size(size) > this->block_size)
+    if (allocator_block_size(size) > this->block_size)
         return CUTL_RESULT_OUT_OF_MEMORY;
 
     // Ok, we are done now
@@ -182,13 +201,13 @@ cutl_result_t cutl_allocator_block_reallocate(cutl_allocator_block_t *const this
 }
 unsigned cutl_allocator_block_get_block_size(const cutl_allocator_block_t *this)
 {
-    return this->block_size - 2LLU * ALLOCATOR_GUARD_BYTE_COUNT;
+    return (unsigned)allocator_usable_size(this->block_size);
 }
 
 static void *wrap_allocate(void *state, const size_t size)
 {
     auto const allocator = (cutl_allocator_block_t *)state;
-    if (size == 0 || _get_block_size(size) > allocator->block_size)
+    if (size == 0 || allocator_block_size(size) > allocator->block_size)
         return nullptr;
     void *memory;
     auto const res = cutl_allocator_block_allocate(allocator, &memory);
@@ -216,7 +235,7 @@ static void *wrap_reallocate(void *state, void *memory, const size_t new_size)
         return nullptr;
     }
 
-    if (_get_block_size(new_size) > allocator->block_size)
+    if (allocator_block_size(new_size) > allocator->block_size)
         return nullptr;
 
     auto const res = cutl_allocator_block_reallocate(allocator, memory, new_size, &memory);
@@ -241,11 +260,14 @@ cutl_result_t cutl_allocator_block_create(const size_t size, unsigned char CUTL_
                                           unsigned block_size, cutl_allocator_block_t **const p_allocator)
 {
     // Check we are properly aligned
-    if (!_check_alignment(memory))
+    if (!allocator_is_aligned(memory))
         return CUTL_RESULT_INSUFFICIENT_ALIGNMENT;
 
     // Adjust the block size to also hold the padding bytes
-    block_size = _get_block_size(block_size);
+    auto const total_block_size = allocator_block_size(block_size);
+    if (total_block_size > UINT_MAX)
+        return CUTL_RESULT_INSUFFICIENT_BUFFER;
+    block_size = (unsigned)total_block_size;
 
     // Can we use at least one block and the array holding the block info?
     auto useful_size = size - sizeof(cutl_allocator_block_t);
@@ -256,7 +278,7 @@ cutl_result_t cutl_allocator_block_create(const size_t size, unsigned char CUTL_
     auto n_blocks = useful_size / block_size;
     // Based on the upper bound, we compute the number of units of counters needed
     auto const n_counters = (n_blocks + blocks_per_counter_unit - 1) / blocks_per_counter_unit;
-    auto const counter_byte_count = n_counters * ALLOCATOR_MINIMUM_ALIGNMENT;
+    auto const counter_byte_count = n_counters * ALLOCATOR_ALIGNMENT;
     // Subtract the memory needed for block counters
     useful_size -= counter_byte_count;
     // Adjust the block number
